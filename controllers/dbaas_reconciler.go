@@ -21,9 +21,9 @@ import (
 )
 
 const (
-	relatedToLabelName  = "related-to"
+	relatedToLabelKey   = "related-to"
 	relatedToLabelValue = "dbaas-operator"
-	typeLabelName       = "type"
+	typeLabelKey        = "type"
 	typeLabelValue      = "dbaas-provider-registration"
 
 	providerDataKey       = "provider"
@@ -34,32 +34,39 @@ const (
 	operatorVersion = "v1alpha1"
 )
 
+var ConfigMapSelector = map[string]string{
+	relatedToLabelKey: relatedToLabelValue,
+	typeLabelKey:      typeLabelValue,
+}
+
 type DBaaSReconciler struct {
 	client.Client
 	*runtime.Scheme
 }
 
 func (p *DBaaSReconciler) getDBaaSProvider(requestedProvider v1alpha1.DatabaseProvider, namespace string, ctx context.Context) (v1alpha1.DBaaSProvider, error) {
-	if cmList, err := p.getProviderCMList(namespace, ctx); err != nil {
+	cmList, err := p.getProviderCMList(namespace, ctx)
+	if err != nil {
 		return v1alpha1.DBaaSProvider{}, err
-	} else {
-		if providers, err := p.parseDBaaSProviderList(cmList); err != nil {
-			return v1alpha1.DBaaSProvider{}, err
-		} else {
-			for _, provider := range providers.Items {
-				if reflect.DeepEqual(provider.Provider, requestedProvider) {
-					return provider, nil
-				}
-			}
-			return v1alpha1.DBaaSProvider{}, apierrors.NewNotFound(schema.GroupResource{
-				Group:    operatorGroup,
-				Resource: strings.ToLower(requestedProvider.Name),
-			}, requestedProvider.Name)
+	}
+
+	providers, err := p.ParseDBaaSProviderList(cmList)
+	if err != nil {
+		return v1alpha1.DBaaSProvider{}, err
+	}
+
+	for _, provider := range providers.Items {
+		if reflect.DeepEqual(provider.Provider, requestedProvider) {
+			return provider, nil
 		}
 	}
+	return v1alpha1.DBaaSProvider{}, apierrors.NewNotFound(schema.GroupResource{
+		Group:    operatorGroup,
+		Resource: strings.ToLower(requestedProvider.Name),
+	}, requestedProvider.Name)
 }
 
-func (p *DBaaSReconciler) parseDBaaSProviderList(cmList v1.ConfigMapList) (v1alpha1.DBaaSProviderList, error) {
+func (p *DBaaSReconciler) ParseDBaaSProviderList(cmList v1.ConfigMapList) (v1alpha1.DBaaSProviderList, error) {
 	providers := make([]v1alpha1.DBaaSProvider, len(cmList.Items))
 	for i, cm := range cmList.Items {
 		var provider v1alpha1.DBaaSProvider
@@ -84,58 +91,39 @@ func (p *DBaaSReconciler) parseDBaaSProviderList(cmList v1.ConfigMapList) (v1alp
 	return v1alpha1.DBaaSProviderList{Items: providers}, nil
 }
 
-func (p *DBaaSReconciler) preStartGetDBaaSProviderInventories(namespace string) ([]unstructured.Unstructured, error) {
-	if cmList, err := p.preStartGetProviderCMList(namespace); err != nil {
-		return nil, err
-	} else {
-		if providers, err := p.parseDBaaSProviderList(cmList); err != nil {
-			return nil, err
-		} else {
-			objects := make([]unstructured.Unstructured, len(providers.Items))
-			for i, provider := range providers.Items {
-				object := unstructured.Unstructured{}
-				object.SetGroupVersionKind(schema.GroupVersionKind{
-					Group:   operatorGroup,
-					Version: operatorVersion,
-					Kind:    provider.InventoryKind,
-				})
-				objects[i] = object
-			}
-			return objects, nil
-		}
+func (p *DBaaSReconciler) parseDBaaSProviderInventories(providerList v1alpha1.DBaaSProviderList) []unstructured.Unstructured {
+	objects := make([]unstructured.Unstructured, len(providerList.Items))
+	for i, provider := range providerList.Items {
+		object := unstructured.Unstructured{}
+		object.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   operatorGroup,
+			Version: operatorVersion,
+			Kind:    provider.InventoryKind,
+		})
+		objects[i] = object
 	}
+	return objects
 }
 
-func (p *DBaaSReconciler) preStartGetDBaaSProviderConnections(namespace string) ([]unstructured.Unstructured, error) {
-	if cmList, err := p.preStartGetProviderCMList(namespace); err != nil {
-		return nil, err
-	} else {
-		if providers, err := p.parseDBaaSProviderList(cmList); err != nil {
-			return nil, err
-		} else {
-			objects := make([]unstructured.Unstructured, len(providers.Items))
-			for i, provider := range providers.Items {
-				object := unstructured.Unstructured{}
-				object.SetGroupVersionKind(schema.GroupVersionKind{
-					Group:   operatorGroup,
-					Version: operatorVersion,
-					Kind:    provider.ConnectionKind,
-				})
-				objects[i] = object
-			}
-			return objects, nil
-		}
+func (p *DBaaSReconciler) parseDBaaSProviderConnections(providerList v1alpha1.DBaaSProviderList) []unstructured.Unstructured {
+	objects := make([]unstructured.Unstructured, len(providerList.Items))
+	for i, provider := range providerList.Items {
+		object := unstructured.Unstructured{}
+		object.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   operatorGroup,
+			Version: operatorVersion,
+			Kind:    provider.ConnectionKind,
+		})
+		objects[i] = object
 	}
+	return objects
 }
 
 func (p *DBaaSReconciler) getProviderCMList(namespace string, ctx context.Context) (v1.ConfigMapList, error) {
 	var cmList v1.ConfigMapList
 	opts := []client.ListOption{
 		client.InNamespace(namespace),
-		client.MatchingLabels{
-			relatedToLabelName: relatedToLabelValue,
-			typeLabelName:      typeLabelValue,
-		},
+		client.MatchingLabels(ConfigMapSelector),
 	}
 
 	if err := p.List(ctx, &cmList, opts...); err != nil {
@@ -144,7 +132,7 @@ func (p *DBaaSReconciler) getProviderCMList(namespace string, ctx context.Contex
 	return cmList, nil
 }
 
-func (p *DBaaSReconciler) preStartGetProviderCMList(namespace string) (v1.ConfigMapList, error) {
+func (p *DBaaSReconciler) PreStartGetProviderCMList(namespace string) (v1.ConfigMapList, error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return v1.ConfigMapList{}, err
@@ -154,12 +142,7 @@ func (p *DBaaSReconciler) preStartGetProviderCMList(namespace string) (v1.Config
 		return v1.ConfigMapList{}, err
 	}
 	options := metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(
-			map[string]string{
-				relatedToLabelName: relatedToLabelValue,
-				typeLabelName:      typeLabelValue,
-			}).
-			String(),
+		LabelSelector: labels.SelectorFromSet(ConfigMapSelector).String(),
 	}
 
 	if cmList, err := clientset.CoreV1().ConfigMaps(namespace).List(context.TODO(), options); err != nil {
