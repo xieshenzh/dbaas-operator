@@ -15,3 +15,11 @@ limitations under the License.
 */
 
 package controllers
+
+import (
+	. "github.com/onsi/ginkgo"
+)
+
+var _ = Describe("DBaaSConnection controller", func() {
+
+})

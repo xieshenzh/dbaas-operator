@@ -20,12 +20,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	ctrl "sigs.k8s.io/controller-runtime"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
@@ -57,7 +58,10 @@ var _ = BeforeSuite(func() {
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths:     []string{filepath.Join("..", "config", "crd", "bases")},
+		CRDDirectoryPaths: []string{
+			filepath.Join("..", "config", "crd", "bases"),
+			filepath.Join("..", "config", "test", "crd"),
+		},
 		ErrorIfCRDPathMissing: true,
 	}
 
@@ -82,17 +86,29 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).ToNot(HaveOccurred())
 
-	//err = (&DBaaSInventoryReconciler{
-	//	Client: k8sManager.GetClient(),
-	//	Scheme: k8sManager.GetScheme(),
-	//}).SetupWithManager(k8sManager, testNamespace)
-	//Expect(err).ToNot(HaveOccurred())
-	//
-	//err = (&DBaaSConnectionReconciler{
-	//	Client: k8sManager.GetClient(),
-	//	Scheme: k8sManager.GetScheme(),
-	//}).SetupWithManager(k8sManager, testNamespace)
-	//Expect(err).ToNot(HaveOccurred())
+	DBaaSReconciler := &DBaaSReconciler{
+		Client: k8sManager.GetClient(),
+		Scheme: k8sManager.GetScheme(),
+	}
+
+	providerList := dbaasv1alpha1.DBaaSProviderList{}
+	cmList := v1.ConfigMapList{}
+
+	err = (&DBaaSInventoryReconciler{
+		DBaaSReconciler: DBaaSReconciler,
+	}).SetupWithManager(k8sManager, providerList)
+	Expect(err).ToNot(HaveOccurred())
+
+	err = (&DBaaSConnectionReconciler{
+		DBaaSReconciler: DBaaSReconciler,
+	}).SetupWithManager(k8sManager, providerList)
+	Expect(err).ToNot(HaveOccurred())
+
+	err = (&ProviderConfigMapReconciler{
+		Client: k8sManager.GetClient(),
+		Scheme: k8sManager.GetScheme(),
+	}).SetupWithManager(k8sManager, cmList)
+	Expect(err).ToNot(HaveOccurred())
 
 	go func() {
 		err = k8sManager.Start(ctrl.SetupSignalHandler())
