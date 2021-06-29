@@ -17,15 +17,20 @@ limitations under the License.
 package controllers
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
-
-	ctrl "sigs.k8s.io/controller-runtime"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
@@ -42,9 +47,17 @@ import (
 var cfg *rest.Config
 var k8sClient client.Client
 var testEnv *envtest.Environment
-var testNamespace string
+var ctx context.Context
 
-func TestAPIs(t *testing.T) {
+const (
+	testNamespace = "default"
+
+	timeout  = time.Second * 10
+	duration = time.Second * 10
+	interval = time.Millisecond * 250
+)
+
+func TestControllers(t *testing.T) {
 	RegisterFailHandler(Fail)
 
 	RunSpecsWithDefaultAndCustomReporters(t,
@@ -57,7 +70,10 @@ var _ = BeforeSuite(func() {
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths:     []string{filepath.Join("..", "config", "crd", "bases")},
+		CRDDirectoryPaths: []string{
+			filepath.Join("..", "config", "crd", "bases"),
+			filepath.Join("..", "config", "test", "crd"),
+		},
 		ErrorIfCRDPathMissing: true,
 	}
 
@@ -70,31 +86,56 @@ var _ = BeforeSuite(func() {
 
 	//+kubebuilder:scaffold:scheme
 
+	ctx = context.Background()
+
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
-	testNamespace = "test"
+	cacheOptions := cache.Options{
+		SelectorsByObject: cache.SelectorsByObject{
+			&v1.ConfigMap{}: {
+				Label: labels.Set(ConfigMapSelector).AsSelector(),
+			},
+		},
+	}
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme:    scheme.Scheme,
 		Namespace: testNamespace,
+		NewCache:  cache.BuilderWithOptions(cacheOptions),
 	})
 	Expect(err).ToNot(HaveOccurred())
 
-	//err = (&DBaaSInventoryReconciler{
-	//	Client: k8sManager.GetClient(),
-	//	Scheme: k8sManager.GetScheme(),
-	//}).SetupWithManager(k8sManager, testNamespace)
-	//Expect(err).ToNot(HaveOccurred())
-	//
-	//err = (&DBaaSConnectionReconciler{
-	//	Client: k8sManager.GetClient(),
-	//	Scheme: k8sManager.GetScheme(),
-	//}).SetupWithManager(k8sManager, testNamespace)
-	//Expect(err).ToNot(HaveOccurred())
+	By("mocking provider ConfigMap")
+	DBaaSReconciler := &DBaaSReconciler{
+		Client: k8sManager.GetClient(),
+		Scheme: k8sManager.GetScheme(),
+	}
+	cmList := v1.ConfigMapList{
+		Items: []v1.ConfigMap{*providerConfigMap},
+	}
+	providerList, err := DBaaSReconciler.ParseDBaaSProviderList(cmList)
+	Expect(err).ToNot(HaveOccurred())
+
+	err = (&DBaaSInventoryReconciler{
+		DBaaSReconciler: DBaaSReconciler,
+	}).SetupWithManager(k8sManager, providerList)
+	Expect(err).ToNot(HaveOccurred())
+
+	err = (&DBaaSConnectionReconciler{
+		DBaaSReconciler: DBaaSReconciler,
+	}).SetupWithManager(k8sManager, providerList)
+	Expect(err).ToNot(HaveOccurred())
+
+	err = (&ProviderConfigMapReconciler{
+		Client: k8sManager.GetClient(),
+		Scheme: k8sManager.GetScheme(),
+	}).SetupWithManager(k8sManager, cmList)
+	Expect(err).ToNot(HaveOccurred())
 
 	go func() {
+		defer GinkgoRecover()
 		err = k8sManager.Start(ctrl.SetupSignalHandler())
 		Expect(err).ToNot(HaveOccurred())
 	}()
