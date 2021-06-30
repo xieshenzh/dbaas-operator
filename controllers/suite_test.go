@@ -17,13 +17,16 @@ limitations under the License.
 package controllers
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -43,7 +46,20 @@ import (
 var cfg *rest.Config
 var k8sClient client.Client
 var testEnv *envtest.Environment
-var testNamespace string
+var ctx context.Context
+var testProviderCM *v1.ConfigMap
+
+const (
+	testNamespace      = "default"
+	testCMName         = "mongodb-atlas"
+	testProviderName   = "MongoDBAtlas"
+	testInventoryKind  = "MongoDBAtlasInventory"
+	testConnectionKind = "MongoDBAtlasConnection"
+
+	timeout  = time.Second * 10
+	duration = time.Second * 10
+	interval = time.Millisecond * 250
+)
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -74,11 +90,11 @@ var _ = BeforeSuite(func() {
 
 	//+kubebuilder:scaffold:scheme
 
+	ctx = context.Background()
+
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
-
-	testNamespace = "test"
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme:    scheme.Scheme,
@@ -86,13 +102,28 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).ToNot(HaveOccurred())
 
+	By("mocking provider ConfigMap")
 	DBaaSReconciler := &DBaaSReconciler{
 		Client: k8sManager.GetClient(),
 		Scheme: k8sManager.GetScheme(),
 	}
-
-	providerList := dbaasv1alpha1.DBaaSProviderList{}
-	cmList := v1.ConfigMapList{}
+	testProviderCM = &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      testCMName,
+			Namespace: testNamespace,
+			Labels:    ConfigMapSelector,
+		},
+		Data: map[string]string{
+			"connection_kind": testConnectionKind,
+			"inventory_kind":  testInventoryKind,
+			"provider":        testProviderName,
+		},
+	}
+	cmList := v1.ConfigMapList{
+		Items: []v1.ConfigMap{*testProviderCM},
+	}
+	providerList, err := DBaaSReconciler.ParseDBaaSProviderList(cmList)
+	Expect(err).ToNot(HaveOccurred())
 
 	err = (&DBaaSInventoryReconciler{
 		DBaaSReconciler: DBaaSReconciler,
