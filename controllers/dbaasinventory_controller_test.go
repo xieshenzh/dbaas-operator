@@ -19,9 +19,8 @@ package controllers
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"time"
 
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -31,26 +30,7 @@ import (
 )
 
 var _ = Describe("DBaaSInventory controller", func() {
-	BeforeEach(func() {
-		By("checking the provider ConfigMap created")
-		createdCM := v1.ConfigMap{}
-		if err := k8sClient.Get(ctx, client.ObjectKey{Name: testCMName, Namespace: testNamespace}, &createdCM); err != nil {
-			if errors.IsNotFound(err) {
-				By("creating the provider ConfigMap")
-				Expect(k8sClient.Create(ctx, testProviderCM)).Should(Succeed())
-
-				Eventually(func() bool {
-					err := k8sClient.Get(ctx, client.ObjectKey{Name: testCMName, Namespace: testNamespace}, &createdCM)
-					if err != nil {
-						return false
-					}
-					return true
-				}, timeout, interval).Should(BeTrue())
-			} else {
-				Fail(err.Error())
-			}
-		}
-	})
+	BeforeEach(assertProviderConfigMapCreated)
 
 	Describe("reconcile", func() {
 		var (
@@ -64,52 +44,51 @@ var _ = Describe("DBaaSInventory controller", func() {
 			}
 		)
 
-		BeforeEach(func() {
-			By("creating a new DBaaSInventory")
-			DBaaSInventory := &v1alpha1.DBaaSInventory{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      inventoryName,
-					Namespace: testNamespace,
-				},
-				Spec: v1alpha1.DBaaSOperatorInventorySpec{
-					Provider: v1alpha1.DatabaseProvider{
-						Name: testProviderName,
+		Context("when creating DBaaSInventory succeeds", func() {
+			BeforeEach(func() {
+				By("creating a new DBaaSInventory")
+				DBaaSInventory := &v1alpha1.DBaaSInventory{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      inventoryName,
+						Namespace: testNamespace,
 					},
-					DBaaSInventorySpec: DBaaSInventorySpec,
-				},
-			}
-			Expect(k8sClient.Create(ctx, DBaaSInventory)).Should(Succeed())
-			var inventory v1alpha1.DBaaSInventory
-			Eventually(func() bool {
-				err := k8sClient.Get(ctx, client.ObjectKeyFromObject(DBaaSInventory), &inventory)
-				if err != nil {
-					return false
+					Spec: v1alpha1.DBaaSOperatorInventorySpec{
+						Provider: v1alpha1.DatabaseProvider{
+							Name: testProviderName,
+						},
+						DBaaSInventorySpec: DBaaSInventorySpec,
+					},
 				}
-				return true
-			}, timeout, interval).Should(BeTrue())
-		})
+				Expect(k8sClient.Create(ctx, DBaaSInventory)).Should(Succeed())
+				var inventory v1alpha1.DBaaSInventory
+				Eventually(func() bool {
+					err := k8sClient.Get(ctx, client.ObjectKeyFromObject(DBaaSInventory), &inventory)
+					if err != nil {
+						return false
+					}
+					return true
+				}, timeout, interval).Should(BeTrue())
+			})
 
-		AfterEach(func() {
-			By("deleting the new DBaaSInventory")
-			DBaaSInventory := &v1alpha1.DBaaSInventory{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      inventoryName,
-					Namespace: testNamespace,
-				},
-			}
-			Expect(k8sClient.Delete(ctx, DBaaSInventory)).Should(Succeed())
-		})
+			AfterEach(func() {
+				By("deleting the new DBaaSInventory")
+				DBaaSInventory := &v1alpha1.DBaaSInventory{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      inventoryName,
+						Namespace: testNamespace,
+					},
+				}
+				Expect(k8sClient.Delete(ctx, DBaaSInventory)).Should(Succeed())
+			})
 
-		Context("when creating DBaaSInventory", func() {
 			It("should create a provider inventory", func() {
 				By("checking a provider inventory is created")
-				gvk := schema.GroupVersionKind{
+				var providerInventory = unstructured.Unstructured{}
+				providerInventory.SetGroupVersionKind(schema.GroupVersionKind{
 					Group:   v1alpha1.GroupVersion.Group,
 					Version: v1alpha1.GroupVersion.Version,
 					Kind:    testInventoryKind,
-				}
-				var providerInventory = unstructured.Unstructured{}
-				providerInventory.SetGroupVersionKind(gvk)
+				})
 				Eventually(func() bool {
 					err := k8sClient.Get(ctx, client.ObjectKey{Name: inventoryName, Namespace: testNamespace}, &providerInventory)
 					if err != nil {
@@ -127,11 +106,71 @@ var _ = Describe("DBaaSInventory controller", func() {
 
 				Expect(spec).Should(Equal(DBaaSInventorySpec))
 			})
-		})
 
-		Context("when updating provider inventory status ", func() {
-			It("should update DBaaSInventory status", func() {
+			Context("when updating provider inventory status ", func() {
+				It("should update DBaaSInventory status", func() {
+					By("checking the DBaaSInventory status has no instance")
+					objectKey := client.ObjectKey{Name: inventoryName, Namespace: testNamespace}
+					DBaaSInventory := &v1alpha1.DBaaSInventory{}
+					Consistently(func() (int, error) {
+						err := k8sClient.Get(ctx, objectKey, DBaaSInventory)
+						if err != nil {
+							return -1, err
+						}
+						return len(DBaaSInventory.Status.Instances), nil
+					}, duration, interval).Should(Equal(0))
 
+					By("getting the provider inventory")
+					var providerInventory = unstructured.Unstructured{}
+					providerInventory.SetGroupVersionKind(schema.GroupVersionKind{
+						Group:   v1alpha1.GroupVersion.Group,
+						Version: v1alpha1.GroupVersion.Version,
+						Kind:    testInventoryKind,
+					})
+					Eventually(func() bool {
+						err := k8sClient.Get(ctx, client.ObjectKey{Name: inventoryName, Namespace: testNamespace}, &providerInventory)
+						if err != nil {
+							return false
+						}
+						return true
+					}, timeout, interval).Should(BeTrue())
+
+					By("updating the provider inventory status")
+					lastTransitionTime, err := time.Parse(time.RFC3339, "2021-06-30T22:17:55-04:00")
+					Expect(err).NotTo(HaveOccurred())
+					status := v1alpha1.DBaaSInventoryStatus{
+						Type: testProviderName,
+						Instances: []v1alpha1.Instance{
+							{
+								InstanceID: "testInstanceID",
+								Name:       "testInstance",
+								InstanceInfo: map[string]string{
+									"testInstanceInfo": "testInstanceInfo",
+								},
+							},
+						},
+						Conditions: []metav1.Condition{
+							{
+								Type:               "SpecSynced",
+								Status:             metav1.ConditionTrue,
+								Reason:             "SyncOK",
+								LastTransitionTime: metav1.Time{Time: lastTransitionTime},
+							},
+						},
+					}
+					providerInventory.UnstructuredContent()["status"] = status
+					Expect(k8sClient.Status().Update(ctx, &providerInventory)).Should(Succeed())
+
+					By("checking the DBaaSInventory status is updated")
+					Eventually(func() (int, error) {
+						err := k8sClient.Get(ctx, objectKey, DBaaSInventory)
+						if err != nil {
+							return -1, err
+						}
+						return len(DBaaSInventory.Status.Instances), nil
+					}, timeout, interval).Should(Equal(1))
+					Expect(DBaaSInventory.Status).Should(Equal(status))
+				})
 			})
 		})
 	})

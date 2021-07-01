@@ -21,5 +21,6 @@ import (
 )
 
 var _ = Describe("DBaaSConnection controller", func() {
+	BeforeEach(assertProviderConfigMapCreated)
 
 })

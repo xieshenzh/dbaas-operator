@@ -29,9 +29,6 @@ const (
 	providerDataKey       = "provider"
 	inventoryKindDataKey  = "inventory_kind"
 	connectionKindDataKey = "connection_kind"
-
-	operatorGroup   = "dbaas.redhat.com"
-	operatorVersion = "v1alpha1"
 )
 
 var ConfigMapSelector = map[string]string{
@@ -61,7 +58,7 @@ func (p *DBaaSReconciler) getDBaaSProvider(requestedProvider v1alpha1.DatabasePr
 		}
 	}
 	return v1alpha1.DBaaSProvider{}, apierrors.NewNotFound(schema.GroupResource{
-		Group:    operatorGroup,
+		Group:    v1alpha1.GroupVersion.Group,
 		Resource: strings.ToLower(requestedProvider.Name),
 	}, requestedProvider.Name)
 }
@@ -96,8 +93,8 @@ func (p *DBaaSReconciler) parseDBaaSProviderInventories(providerList v1alpha1.DB
 	for i, provider := range providerList.Items {
 		object := unstructured.Unstructured{}
 		object.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   operatorGroup,
-			Version: operatorVersion,
+			Group:   v1alpha1.GroupVersion.Group,
+			Version: v1alpha1.GroupVersion.Version,
 			Kind:    provider.InventoryKind,
 		})
 		objects[i] = object
@@ -110,8 +107,8 @@ func (p *DBaaSReconciler) parseDBaaSProviderConnections(providerList v1alpha1.DB
 	for i, provider := range providerList.Items {
 		object := unstructured.Unstructured{}
 		object.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   operatorGroup,
-			Version: operatorVersion,
+			Group:   v1alpha1.GroupVersion.Group,
+			Version: v1alpha1.GroupVersion.Version,
 			Kind:    provider.ConnectionKind,
 		})
 		objects[i] = object
@@ -155,8 +152,8 @@ func (p *DBaaSReconciler) PreStartGetProviderCMList(namespace string) (v1.Config
 func (p *DBaaSReconciler) createProviderObject(object client.Object, providerObjectKind string, spec interface{}, ctx context.Context) error {
 	providerObject := &unstructured.Unstructured{}
 	providerObject.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   object.GetObjectKind().GroupVersionKind().Group,
-		Version: object.GetObjectKind().GroupVersionKind().Version,
+		Group:   v1alpha1.GroupVersion.Group,
+		Version: v1alpha1.GroupVersion.Version,
 		Kind:    providerObjectKind,
 	})
 	providerObject.SetNamespace(object.GetNamespace())
@@ -180,14 +177,12 @@ func (p *DBaaSReconciler) updateProviderObject(providerObject unstructured.Unstr
 }
 
 func (p *DBaaSReconciler) getProviderObject(object client.Object, providerObjectKind string, ctx context.Context) (unstructured.Unstructured, error) {
-	gvk := schema.GroupVersionKind{
-		Group:   object.GetObjectKind().GroupVersionKind().Group,
-		Version: object.GetObjectKind().GroupVersionKind().Version,
-		Kind:    providerObjectKind,
-	}
-
 	var providerObject = unstructured.Unstructured{}
-	providerObject.SetGroupVersionKind(gvk)
+	providerObject.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   v1alpha1.GroupVersion.Group,
+		Version: v1alpha1.GroupVersion.Version,
+		Kind:    providerObjectKind,
+	})
 	if err := p.Get(ctx, client.ObjectKeyFromObject(object), &providerObject); err != nil {
 		return unstructured.Unstructured{}, err
 	}

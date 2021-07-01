@@ -26,6 +26,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -47,10 +48,12 @@ var cfg *rest.Config
 var k8sClient client.Client
 var testEnv *envtest.Environment
 var ctx context.Context
+
 var testProviderCM *v1.ConfigMap
 
 const (
-	testNamespace      = "default"
+	testNamespace = "default"
+
 	testCMName         = "mongodb-atlas"
 	testProviderName   = "MongoDBAtlas"
 	testInventoryKind  = "MongoDBAtlasInventory"
@@ -152,3 +155,24 @@ var _ = AfterSuite(func() {
 	err := testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())
 })
+
+func assertProviderConfigMapCreated() {
+	By("checking the provider ConfigMap created")
+	createdCM := v1.ConfigMap{}
+	if err := k8sClient.Get(ctx, client.ObjectKey{Name: testCMName, Namespace: testNamespace}, &createdCM); err != nil {
+		if errors.IsNotFound(err) {
+			By("creating the provider ConfigMap")
+			Expect(k8sClient.Create(ctx, testProviderCM)).Should(Succeed())
+
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, client.ObjectKey{Name: testCMName, Namespace: testNamespace}, &createdCM)
+				if err != nil {
+					return false
+				}
+				return true
+			}, timeout, interval).Should(BeTrue())
+		} else {
+			Fail(err.Error())
+		}
+	}
+}

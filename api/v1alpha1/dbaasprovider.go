@@ -83,7 +83,7 @@ type Instance struct {
 	Name string `json:"name,omitempty"`
 
 	// Any other provider-specific information related to this instance
-	InstanceInfo map[string]string `json:"extraInfo,omitempty"`
+	InstanceInfo map[string]string `json:"instanceInfo,omitempty"`
 }
 
 type NamespacedName struct {
