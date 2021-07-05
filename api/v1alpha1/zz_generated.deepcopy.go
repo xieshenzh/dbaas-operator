@@ -137,10 +137,8 @@ func (in *DBaaSConnectionStatus) DeepCopyInto(out *DBaaSConnectionStatus) {
 	}
 	if in.ConnectionInfo != nil {
 		in, out := &in.ConnectionInfo, &out.ConnectionInfo
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
+		*out = new(corev1.LocalObjectReference)
+		**out = **in
 	}
 }
 
