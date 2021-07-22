@@ -39,7 +39,6 @@ type DBaaSConnectionReconciler struct {
 //+kubebuilder:rbac:groups=dbaas.redhat.com,resources=*,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=dbaas.redhat.com,resources=*/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=dbaas.redhat.com,resources=*/finalizers,verbs=update
-//+kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list
 //+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -62,6 +61,10 @@ func (r *DBaaSConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	if result, err := r.reconcileDevTopologyResource(&connection, ctx); err != nil {
+		if errors.IsConflict(err) {
+			logger.Info("Deployment for Developer Topology view modified, retry reconciling")
+			return ctrl.Result{Requeue: true}, nil
+		}
 		logger.Error(err, "Error reconciling Deployment for Developer Topology view")
 		return ctrl.Result{}, err
 	} else {
@@ -74,18 +77,18 @@ func (r *DBaaSConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 
-	provider, err := r.getDBaaSProvider(inventory.Spec.Provider, ctx)
+	provider, err := r.getDBaaSProvider(inventory.Spec.ProviderRef, ctx)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			logger.Error(err, "Requested DBaaS Provider is not configured in this environment", "DBaaS Provider", inventory.Spec.Provider)
+			logger.Error(err, "Requested DBaaS Provider is not configured in this environment", "DBaaS Provider", inventory.Spec.ProviderRef)
 			return ctrl.Result{}, err
 		}
-		logger.Error(err, "Error reading configured DBaaS Provider", "DBaaS Provider", inventory.Spec.Provider)
+		logger.Error(err, "Error reading configured DBaaS Provider", "DBaaS Provider", inventory.Spec.ProviderRef)
 		return ctrl.Result{}, err
 	}
-	logger.Info("Found DBaaS Provider", "DBaaS Provider", provider.Provider)
+	logger.Info("Found DBaaS Provider", "DBaaS Provider", inventory.Spec.ProviderRef)
 
-	providerConnection := r.createProviderObject(&connection, provider.ConnectionKind)
+	providerConnection := r.createProviderObject(&connection, provider.Spec.ConnectionKind)
 	if result, err := r.reconcileProviderObject(providerConnection, r.providerObjectMutateFn(&connection, providerConnection, connection.Spec.DeepCopy()), ctx); err != nil {
 		if errors.IsConflict(err) {
 			logger.Info("Provider Connection modified, retry syncing spec")
