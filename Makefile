@@ -4,6 +4,10 @@
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= 0.1.1
+# CATALOG_VERSION defines the version of the index image.
+CATALOG_VERSION ?= 0.1
+# OLD_BUNDLE_VERSIONS defines the comma separated list of versions of old bundles to add to the index.
+OLD_BUNDLE_VERSIONS ?= 0.1.0
 export OPERATOR_CONDITION_NAME=dbaas-operator.v$(VERSION)
 
 # CHANNELS define the bundle channels used in the bundle.
@@ -35,6 +39,12 @@ IMAGE_TAG_BASE ?= quay.io/ecosystem-appeng/dbaas-operator
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
+
+# OLD_BUNDLE_IMGS defines the comma separated list of old bundles to add to the index.
+COMMA := ,
+EMPTY :=
+SPACE := $(EMPTY) $(EMPTY)
+OLD_BUNDLE_IMGS = $(patsubst %$(COMMA),%$(EMPTY),$(subst $(SPACE),$(EMPTY),$(foreach ver,$(subst $(COMMA),$(SPACE),$(OLD_BUNDLE_VERSIONS)),$(IMAGE_TAG_BASE)-bundle:v$(ver),)))
 
 # Image URL to use all building/pushing image targets
 IMG ?= $(IMAGE_TAG_BASE):v$(VERSION)
@@ -213,10 +223,10 @@ endif
 
 # A comma-separated list of bundle images (e.g. make catalog-build BUNDLE_IMGS=example.com/operator-bundle:v0.1.0,example.com/operator-bundle:v0.2.0).
 # These images MUST exist in a registry and be pull-able.
-BUNDLE_IMGS ?= $(BUNDLE_IMG)
+BUNDLE_IMGS ?= $(BUNDLE_IMG),$(OLD_BUNDLE_IMGS)
 
 # The image tag given to the resulting catalog image (e.g. make catalog-build CATALOG_IMG=example.com/operator-catalog:v0.2.0).
-CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:v$(VERSION)
+CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:v$(CATALOG_VERSION)
 
 # Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMGS to that image.
 ifneq ($(origin CATALOG_BASE_IMG), undefined)
