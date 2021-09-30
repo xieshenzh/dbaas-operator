@@ -44,7 +44,8 @@ BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 COMMA := ,
 EMPTY :=
 SPACE := $(EMPTY) $(EMPTY)
-OLD_BUNDLE_IMGS = $(patsubst %$(COMMA),%$(EMPTY),$(subst $(SPACE),$(EMPTY),$(foreach ver,$(subst $(COMMA),$(SPACE),$(OLD_BUNDLE_VERSIONS)),$(IMAGE_TAG_BASE)-bundle:v$(ver),)))
+OLD_BUNDLE_IMG_TAG_BASE ?= $(IMAGE_TAG_BASE)-bundle
+OLD_BUNDLE_IMGS ?= $(patsubst %$(COMMA),%$(EMPTY),$(subst $(SPACE),$(EMPTY),$(foreach ver,$(subst $(COMMA),$(SPACE),$(OLD_BUNDLE_VERSIONS)),$(OLD_BUNDLE_IMG_TAG_BASE):v$(ver),)))
 
 # Image URL to use all building/pushing image targets
 IMG ?= $(IMAGE_TAG_BASE):v$(VERSION)
@@ -223,7 +224,11 @@ endif
 
 # A comma-separated list of bundle images (e.g. make catalog-build BUNDLE_IMGS=example.com/operator-bundle:v0.1.0,example.com/operator-bundle:v0.2.0).
 # These images MUST exist in a registry and be pull-able.
+ifeq ($(OLD_BUNDLE_IMGS),)
+BUNDLE_IMGS ?= $(BUNDLE_IMG)
+else
 BUNDLE_IMGS ?= $(BUNDLE_IMG),$(OLD_BUNDLE_IMGS)
+endif
 
 # The image tag given to the resulting catalog image (e.g. make catalog-build CATALOG_IMG=example.com/operator-catalog:v0.2.0).
 CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:v$(CATALOG_VERSION)
