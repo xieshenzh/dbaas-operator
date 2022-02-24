@@ -220,6 +220,8 @@ type DBaaSInstanceStatus struct {
 	// Deleting - cluster deletion in progress
 	// Deleted - cluster has been deleted
 	// Ready - cluster provisioning complete
+	// Error - cluster provisioning with error
+	// Failed - cluster provisioning failed
 	Phase string `json:"phase"`
 }
 
@@ -247,5 +249,3 @@ type InstanceParameterSpec struct {
 	// Default value for this field
 	DefaultValue string `json:"defaultValue,omitempty"`
 }
-
-var InstanceParameterSpecs = InstanceParameterSpec{}

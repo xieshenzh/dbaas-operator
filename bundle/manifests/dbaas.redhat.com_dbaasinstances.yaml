@@ -152,6 +152,8 @@ spec:
                   not yet started Creating - provisioning in progress Updating - cluster
                   updating in progress Deleting - cluster deletion in progress Deleted
                   - cluster has been deleted Ready - cluster provisioning complete
+                  Error - cluster provisioning with error Failed - cluster provisioning
+                  failed
                 type: string
             required:
             - instanceID
