@@ -19,15 +19,17 @@ package controllers
 import (
 	"context"
 
-	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
+	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha2"
 	metrics "github.com/RHEcosystemAppEng/dbaas-operator/controllers/metrics"
 )
 
@@ -49,7 +51,7 @@ type DBaaSInventoryReconciler struct {
 func (r *DBaaSInventoryReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	execution := metrics.PlatformInstallStart()
 	logger := ctrl.LoggerFrom(ctx)
-	var inventory v1alpha1.DBaaSInventory
+	var inventory v1alpha2.DBaaSInventory
 	metricLabelErrCdValue := ""
 	event := ""
 
@@ -116,6 +118,9 @@ func (r *DBaaSInventoryReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	return r.reconcileProviderResource(ctx,
 		inventory.Spec.ProviderRef.Name,
 		&inventory,
+		func() *schema.GroupVersion {
+			return &v1alpha2.GroupVersion
+		},
 		func(provider *v1alpha1.DBaaSProvider) string {
 			return provider.Spec.InventoryKind
 		},
@@ -123,10 +128,10 @@ func (r *DBaaSInventoryReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			return inventory.Spec.DeepCopy()
 		},
 		func() interface{} {
-			return &v1alpha1.DBaaSProviderInventory{}
+			return &v1alpha2.DBaaSProviderInventory{}
 		},
 		func(i interface{}) metav1.Condition {
-			providerInv := i.(*v1alpha1.DBaaSProviderInventory)
+			providerInv := i.(*v1alpha2.DBaaSProviderInventory)
 			return mergeInventoryStatus(&inventory, providerInv)
 		},
 		func() *[]metav1.Condition {
@@ -140,8 +145,8 @@ func (r *DBaaSInventoryReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 // SetupWithManager sets up the controller with the Manager.
 func (r *DBaaSInventoryReconciler) SetupWithManager(mgr ctrl.Manager) (controller.Controller, error) {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.DBaaSInventory{}).
-		Watches(&source.Kind{Type: &v1alpha1.DBaaSInventory{}}, &EventHandlerWithDelete{Controller: r}).
+		For(&v1alpha2.DBaaSInventory{}).
+		Watches(&source.Kind{Type: &v1alpha2.DBaaSInventory{}}, &EventHandlerWithDelete{Controller: r}).
 		WithOptions(
 			controller.Options{MaxConcurrentReconciles: 2},
 		).
@@ -149,7 +154,7 @@ func (r *DBaaSInventoryReconciler) SetupWithManager(mgr ctrl.Manager) (controlle
 }
 
 // mergeInventoryStatus: merge the status from DBaaSProviderInventory into the current DBaaSInventory status
-func mergeInventoryStatus(inv *v1alpha1.DBaaSInventory, providerInv *v1alpha1.DBaaSProviderInventory) metav1.Condition {
+func mergeInventoryStatus(inv *v1alpha2.DBaaSInventory, providerInv *v1alpha2.DBaaSProviderInventory) metav1.Condition {
 	providerInv.Status.DeepCopyInto(&inv.Status)
 	// Update inventory status condition (type: DBaaSInventoryReadyType) based on the provider status
 	specSync := apimeta.FindStatusCondition(providerInv.Status.Conditions, v1alpha1.DBaaSInventoryProviderSyncType)
@@ -175,7 +180,7 @@ func (r *DBaaSInventoryReconciler) Delete(e event.DeleteEvent) error {
 	metricLabelErrCdValue := ""
 	log := ctrl.Log.WithName("DBaaSInventoryReconciler DeleteEvent")
 
-	inventory, ok := e.Object.(*v1alpha1.DBaaSInventory)
+	inventory, ok := e.Object.(*v1alpha2.DBaaSInventory)
 
 	if !ok {
 		log.Info("Error getting inventory object during delete")
