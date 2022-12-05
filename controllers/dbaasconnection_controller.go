@@ -272,7 +272,7 @@ func (r *DBaaSConnectionReconciler) getConnectionSpec(ctx context.Context, spec 
 		return nil, fmt.Errorf("database service reference is not properly set")
 	}
 
-	if spec.DatabaseServiceType == nil || len(*spec.DatabaseServiceType) == 0 {
+	if spec.DatabaseServiceType == nil {
 		instance := &v1alpha1.DBaaSInstance{}
 		if err := r.Get(ctx, types.NamespacedName{
 			Name:      databaseServiceRef.Name,

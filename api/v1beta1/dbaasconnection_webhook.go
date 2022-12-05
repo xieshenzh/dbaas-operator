@@ -64,6 +64,9 @@ func (r *DBaaSConnection) validateCreateDBaaSConnectionSpec() error {
 	if len(r.Spec.DatabaseServiceID) == 0 && (r.Spec.DatabaseServiceRef == nil || len(r.Spec.DatabaseServiceRef.Name) == 0) {
 		return field.Invalid(field.NewPath("spec").Child("databaseServiceID"), r.Spec.DatabaseServiceID, "either databaseServiceID or databaseServiceRef must be specified")
 	}
+	if r.Spec.DatabaseServiceRef != nil && r.Spec.DatabaseServiceType != nil {
+		return field.Invalid(field.NewPath("spec").Child("databaseServiceRef"), r.Spec.DatabaseServiceID, "when using databaseServiceRef, databaseServiceType must not be specified")
+	}
 	return nil
 }
 
