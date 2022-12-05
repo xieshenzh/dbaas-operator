@@ -78,7 +78,7 @@ type DatabaseService struct {
 	ServiceName string `json:"serviceName,omitempty"`
 
 	// The type of the database service.
-	ServiceType DatabaseServiceType `json:"serviceType,omitempty"`
+	ServiceType *DatabaseServiceType `json:"serviceType,omitempty"`
 
 	// Any other provider-specific information related to this service.
 	ServiceInfo map[string]string `json:"serviceInfo,omitempty"`
