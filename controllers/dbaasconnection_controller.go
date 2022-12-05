@@ -36,7 +36,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha1"
-	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha2"
+	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1beta1"
 	metrics "github.com/RHEcosystemAppEng/dbaas-operator/controllers/metrics"
 )
 
@@ -58,7 +58,7 @@ type DBaaSConnectionReconciler struct {
 func (r *DBaaSConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	execution := metrics.PlatformInstallStart()
 	logger := ctrl.LoggerFrom(ctx)
-	var connection v1alpha2.DBaaSConnection
+	var connection v1beta1.DBaaSConnection
 	metricLabelErrCdValue := ""
 	event := ""
 
@@ -114,7 +114,7 @@ func (r *DBaaSConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			cond := metav1.Condition{
 				Type:    v1alpha1.DBaaSConnectionReadyType,
 				Status:  metav1.ConditionFalse,
-				Reason:  v1alpha2.DBaaSServiceNotAvailable,
+				Reason:  v1beta1.DBaaSServiceNotAvailable,
 				Message: err.Error(),
 			}
 			r.updateConnectionStatus(ctx, &connection, &cond)
@@ -125,7 +125,7 @@ func (r *DBaaSConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			inventory.Spec.ProviderRef.Name,
 			&connection,
 			func() *schema.GroupVersion {
-				return &v1alpha2.GroupVersion
+				return &v1beta1.GroupVersion
 			},
 			func(provider *v1alpha1.DBaaSProvider) string {
 				return provider.Spec.ConnectionKind
@@ -134,10 +134,10 @@ func (r *DBaaSConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 				return spec
 			},
 			func() interface{} {
-				return &v1alpha2.DBaaSProviderConnection{}
+				return &v1beta1.DBaaSProviderConnection{}
 			},
 			func(i interface{}) metav1.Condition {
-				providerConn := i.(*v1alpha2.DBaaSProviderConnection)
+				providerConn := i.(*v1beta1.DBaaSProviderConnection)
 				return mergeConnectionStatus(&connection, providerConn)
 			},
 			func() *[]metav1.Condition {
@@ -156,15 +156,15 @@ func (r *DBaaSConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 // SetupWithManager sets up the controller with the Manager.
 func (r *DBaaSConnectionReconciler) SetupWithManager(mgr ctrl.Manager) (controller.Controller, error) {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha2.DBaaSConnection{}).
-		Watches(&source.Kind{Type: &v1alpha2.DBaaSConnection{}}, &EventHandlerWithDelete{Controller: r}).
+		For(&v1beta1.DBaaSConnection{}).
+		Watches(&source.Kind{Type: &v1beta1.DBaaSConnection{}}, &EventHandlerWithDelete{Controller: r}).
 		WithOptions(
 			controller.Options{MaxConcurrentReconciles: 2},
 		).
 		Build(r)
 }
 
-func (r *DBaaSConnectionReconciler) reconcileDevTopologyResource(ctx context.Context, connection *v1alpha2.DBaaSConnection) (controllerutil.OperationResult, error) {
+func (r *DBaaSConnectionReconciler) reconcileDevTopologyResource(ctx context.Context, connection *v1beta1.DBaaSConnection) (controllerutil.OperationResult, error) {
 	deployment := &appv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      connection.Name,
@@ -175,7 +175,7 @@ func (r *DBaaSConnectionReconciler) reconcileDevTopologyResource(ctx context.Con
 	return result, err
 }
 
-func (r *DBaaSConnectionReconciler) deploymentMutateFn(connection *v1alpha2.DBaaSConnection, deployment *appv1.Deployment) controllerutil.MutateFn {
+func (r *DBaaSConnectionReconciler) deploymentMutateFn(connection *v1beta1.DBaaSConnection, deployment *appv1.Deployment) controllerutil.MutateFn {
 	return func() error {
 		if deployment.ObjectMeta.Annotations == nil {
 			deployment.ObjectMeta.Annotations = make(map[string]string, 4)
@@ -216,7 +216,7 @@ func (r *DBaaSConnectionReconciler) deploymentMutateFn(connection *v1alpha2.DBaa
 }
 
 // mergeConnectionStatus: merge the status from DBaaSProviderConnection into the current DBaaSConnection status
-func mergeConnectionStatus(conn *v1alpha2.DBaaSConnection, providerConn *v1alpha2.DBaaSProviderConnection) metav1.Condition {
+func mergeConnectionStatus(conn *v1beta1.DBaaSConnection, providerConn *v1beta1.DBaaSProviderConnection) metav1.Condition {
 	providerConn.Status.DeepCopyInto(&conn.Status)
 	// Update connection status condition (type: DBaaSConnectionReadyType) based on the provider status
 	specSync := apimeta.FindStatusCondition(providerConn.Status.Conditions, v1alpha1.DBaaSConnectionProviderSyncType)
@@ -243,7 +243,7 @@ func (r *DBaaSConnectionReconciler) Delete(e event.DeleteEvent) error {
 	log := ctrl.Log.WithName("DBaaSConnectionReconciler DeleteEvent")
 	log.Info("Delete event started")
 
-	connectionObj, ok := e.Object.(*v1alpha2.DBaaSConnection)
+	connectionObj, ok := e.Object.(*v1beta1.DBaaSConnection)
 	if !ok {
 		log.Info("Error getting connection object during delete")
 		metricLabelErrCdValue = metrics.LabelErrorCdValueErrorDeletingConnection
@@ -251,7 +251,7 @@ func (r *DBaaSConnectionReconciler) Delete(e event.DeleteEvent) error {
 	}
 	log.Info("connectionObj", "connectionObj", objectKeyFromObject(connectionObj))
 
-	inventory := &v1alpha2.DBaaSInventory{}
+	inventory := &v1beta1.DBaaSInventory{}
 	_ = r.Get(context.TODO(), types.NamespacedName{Namespace: connectionObj.Spec.InventoryRef.Namespace, Name: connectionObj.Spec.InventoryRef.Name}, inventory)
 
 	log.Info("Calling metrics for deleting of DBaaSConnection")
@@ -261,7 +261,7 @@ func (r *DBaaSConnectionReconciler) Delete(e event.DeleteEvent) error {
 
 }
 
-func (r *DBaaSConnectionReconciler) getConnectionSpec(ctx context.Context, spec *v1alpha2.DBaaSConnectionSpec) (interface{}, error) {
+func (r *DBaaSConnectionReconciler) getConnectionSpec(ctx context.Context, spec *v1beta1.DBaaSConnectionSpec) (interface{}, error) {
 	if len(spec.DatabaseServiceID) > 0 {
 		return spec, nil
 	}
@@ -272,7 +272,7 @@ func (r *DBaaSConnectionReconciler) getConnectionSpec(ctx context.Context, spec 
 		return nil, fmt.Errorf("database service reference is not properly set")
 	}
 
-	if len(spec.DatabaseServiceType) == 0 || spec.DatabaseServiceType == v1alpha2.InstanceDatabaseService {
+	if len(spec.DatabaseServiceType) == 0 {
 		instance := &v1alpha1.DBaaSInstance{}
 		if err := r.Get(ctx, types.NamespacedName{
 			Name:      databaseServiceRef.Name,
@@ -298,7 +298,7 @@ func (r *DBaaSConnectionReconciler) getConnectionSpec(ctx context.Context, spec 
 	return spec, nil
 }
 
-func (r *DBaaSConnectionReconciler) updateConnectionStatus(ctx context.Context, connection *v1alpha2.DBaaSConnection, cond *metav1.Condition) {
+func (r *DBaaSConnectionReconciler) updateConnectionStatus(ctx context.Context, connection *v1beta1.DBaaSConnection, cond *metav1.Condition) {
 	apimeta.SetStatusCondition(&connection.Status.Conditions, *cond)
 	logger := ctrl.LoggerFrom(ctx)
 	if err := r.Client.Status().Update(ctx, connection); err != nil {

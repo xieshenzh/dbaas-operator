@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha2
+package v1beta1
 
 const (
 	DBaaSServiceNotAvailable string = "DBaaSServiceNotAvailable"
@@ -38,9 +38,3 @@ type NamespacedName struct {
 
 // DatabaseServiceType type of the supported database service
 type DatabaseServiceType string
-
-// Constants for database service types
-const (
-	InstanceDatabaseService DatabaseServiceType = "instance"
-	ClusterDatabaseService  DatabaseServiceType = "cluster"
-)

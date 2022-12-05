@@ -17,20 +17,20 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha2"
+	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
 
-// ConvertTo converts this DBaaSInventory to the Hub version (v1alpha2).
+// ConvertTo converts this DBaaSInventory to the Hub version (v1beta1).
 func (src *DBaaSInventory) ConvertTo(dstRaw conversion.Hub) error {
-	dst := dstRaw.(*v1alpha2.DBaaSInventory)
+	dst := dstRaw.(*v1beta1.DBaaSInventory)
 
-	dst.Spec.ProviderRef = v1alpha2.NamespacedName{
+	dst.Spec.ProviderRef = v1beta1.NamespacedName{
 		Name:      src.Spec.ProviderRef.Name,
 		Namespace: src.Spec.ProviderRef.Namespace,
 	}
 	if src.Spec.CredentialsRef != nil {
-		dst.Spec.CredentialsRef = &v1alpha2.LocalObjectReference{
+		dst.Spec.CredentialsRef = &v1beta1.LocalObjectReference{
 			Name: src.Spec.CredentialsRef.Name,
 		}
 	}
@@ -42,13 +42,12 @@ func (src *DBaaSInventory) ConvertTo(dstRaw conversion.Hub) error {
 
 	dst.Status.Conditions = src.Status.Conditions
 	if src.Status.Instances != nil {
-		var services []v1alpha2.DatabaseService
+		var services []v1beta1.DatabaseService
 		for _, instance := range src.Status.Instances {
-			services = append(services, v1alpha2.DatabaseService{
+			services = append(services, v1beta1.DatabaseService{
 				ServiceID:   instance.InstanceID,
 				ServiceName: instance.Name,
 				ServiceInfo: instance.InstanceInfo,
-				ServiceType: v1alpha2.InstanceDatabaseService,
 			})
 		}
 		dst.Status.DatabaseServices = services
@@ -57,9 +56,9 @@ func (src *DBaaSInventory) ConvertTo(dstRaw conversion.Hub) error {
 	return nil
 }
 
-// ConvertFrom converts from the Hub version (v1alpha2) to this version.
+// ConvertFrom converts from the Hub version (v1beta1) to this version.
 func (dst *DBaaSInventory) ConvertFrom(srcRaw conversion.Hub) error {
-	src := srcRaw.(*v1alpha2.DBaaSInventory)
+	src := srcRaw.(*v1beta1.DBaaSInventory)
 
 	dst.Spec.ProviderRef = NamespacedName{
 		Name:      src.Spec.ProviderRef.Name,
@@ -80,13 +79,11 @@ func (dst *DBaaSInventory) ConvertFrom(srcRaw conversion.Hub) error {
 	if src.Status.DatabaseServices != nil {
 		var instances []Instance
 		for _, service := range src.Status.DatabaseServices {
-			if service.ServiceType == v1alpha2.InstanceDatabaseService {
-				instances = append(instances, Instance{
-					InstanceID:   service.ServiceID,
-					Name:         service.ServiceName,
-					InstanceInfo: service.ServiceInfo,
-				})
-			}
+			instances = append(instances, Instance{
+				InstanceID:   service.ServiceID,
+				Name:         service.ServiceName,
+				InstanceInfo: service.ServiceInfo,
+			})
 		}
 		dst.Status.Instances = instances
 	}

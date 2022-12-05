@@ -39,7 +39,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha1"
-	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha2"
+	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1beta1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -73,7 +73,7 @@ var _ = BeforeSuite(func() {
 	scheme := runtime.NewScheme()
 	err := v1alpha1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())
-	err = v1alpha2.AddToScheme(scheme)
+	err = v1beta1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())
 	err = clientgoscheme.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())

@@ -153,7 +153,7 @@ spec:
       storage: false
       subresources:
         status: {}
-    - name: v1alpha2
+    - name: v1beta1
       schema:
         openAPIV3Schema:
           description: DBaaSInventory is the Schema for the dbaasinventories API Inventory
@@ -359,11 +359,7 @@ spec:
                         description: The name of the database service
                         type: string
                       serviceType:
-                        default: instance
                         description: The type of the database service
-                        enum:
-                          - instance
-                          - cluster
                         type: string
                     required:
                       - serviceID

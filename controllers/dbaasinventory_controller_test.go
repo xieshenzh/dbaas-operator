@@ -17,7 +17,6 @@ limitations under the License.
 package controllers
 
 import (
-	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -26,6 +25,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha1"
+	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1beta1"
 )
 
 var _ = Describe("DBaaSInventory controller with errors", func() {
@@ -34,18 +34,18 @@ var _ = Describe("DBaaSInventory controller with errors", func() {
 		ns := "testns-no-policy"
 		nsSpec := &v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: ns}}
 
-		DBaaSInventorySpec := &v1alpha2.DBaaSInventorySpec{
-			CredentialsRef: &v1alpha2.LocalObjectReference{
+		DBaaSInventorySpec := &v1beta1.DBaaSInventorySpec{
+			CredentialsRef: &v1beta1.LocalObjectReference{
 				Name: testSecret.Name,
 			},
 		}
-		createdDBaaSInventory := &v1alpha2.DBaaSInventory{
+		createdDBaaSInventory := &v1beta1.DBaaSInventory{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      inventoryName,
 				Namespace: ns,
 			},
-			Spec: v1alpha2.DBaaSOperatorInventorySpec{
-				ProviderRef: v1alpha2.NamespacedName{
+			Spec: v1beta1.DBaaSOperatorInventorySpec{
+				ProviderRef: v1beta1.NamespacedName{
 					Name: testProviderName,
 				},
 				DBaaSInventorySpec: *DBaaSInventorySpec,
@@ -61,18 +61,18 @@ var _ = Describe("DBaaSInventory controller with errors", func() {
 	Context("after creating DBaaSInventory without valid provider", func() {
 		inventoryName := "test-inventory-no-provider"
 		providerName := "provider-no-exist"
-		DBaaSInventorySpec := &v1alpha2.DBaaSInventorySpec{
-			CredentialsRef: &v1alpha2.LocalObjectReference{
+		DBaaSInventorySpec := &v1beta1.DBaaSInventorySpec{
+			CredentialsRef: &v1beta1.LocalObjectReference{
 				Name: testSecret.Name,
 			},
 		}
-		createdDBaaSInventory := &v1alpha2.DBaaSInventory{
+		createdDBaaSInventory := &v1beta1.DBaaSInventory{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      inventoryName,
 				Namespace: testNamespace,
 			},
-			Spec: v1alpha2.DBaaSOperatorInventorySpec{
-				ProviderRef: v1alpha2.NamespacedName{
+			Spec: v1beta1.DBaaSOperatorInventorySpec{
+				ProviderRef: v1beta1.NamespacedName{
 					Name: providerName,
 				},
 				DBaaSInventorySpec: *DBaaSInventorySpec,
@@ -95,18 +95,18 @@ var _ = Describe("DBaaSInventory controller - nominal", func() {
 	Describe("reconcile", func() {
 		Context("after creating DBaaSInventory", func() {
 			inventoryName := "test-inventory"
-			DBaaSInventorySpec := &v1alpha2.DBaaSInventorySpec{
-				CredentialsRef: &v1alpha2.LocalObjectReference{
+			DBaaSInventorySpec := &v1beta1.DBaaSInventorySpec{
+				CredentialsRef: &v1beta1.LocalObjectReference{
 					Name: testSecret.Name,
 				},
 			}
-			createdDBaaSInventory := &v1alpha2.DBaaSInventory{
+			createdDBaaSInventory := &v1beta1.DBaaSInventory{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      inventoryName,
 					Namespace: testNamespace,
 				},
-				Spec: v1alpha2.DBaaSOperatorInventorySpec{
-					ProviderRef: v1alpha2.NamespacedName{
+				Spec: v1beta1.DBaaSOperatorInventorySpec{
+					ProviderRef: v1beta1.NamespacedName{
 						Name: testProviderName,
 					},
 					DBaaSInventorySpec: *DBaaSInventorySpec,
@@ -121,12 +121,11 @@ var _ = Describe("DBaaSInventory controller - nominal", func() {
 
 			Context("when updating provider inventory status", func() {
 				lastTransitionTime := getLastTransitionTimeForTest()
-				status := &v1alpha2.DBaaSInventoryStatus{
-					DatabaseServices: []v1alpha2.DatabaseService{
+				status := &v1beta1.DBaaSInventoryStatus{
+					DatabaseServices: []v1beta1.DatabaseService{
 						{
 							ServiceID:   "testInstanceID",
 							ServiceName: "testInstance",
-							ServiceType: v1alpha2.InstanceDatabaseService,
 							ServiceInfo: map[string]string{
 								"testInstanceInfo": "testInstanceInfo",
 							},
@@ -152,8 +151,8 @@ var _ = Describe("DBaaSInventory controller - nominal", func() {
 						Namespace: testNamespace,
 					},
 				}
-				DBaaSInventorySpec := &v1alpha2.DBaaSInventorySpec{
-					CredentialsRef: &v1alpha2.LocalObjectReference{
+				DBaaSInventorySpec := &v1beta1.DBaaSInventorySpec{
+					CredentialsRef: &v1beta1.LocalObjectReference{
 						Name: updatedTestSecret.Name,
 					},
 				}

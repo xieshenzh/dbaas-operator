@@ -23,7 +23,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha1"
-	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha2"
+	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1beta1"
 )
 
 var _ = Describe("DBaaSInstance controller with errors", func() {
@@ -58,18 +58,18 @@ var _ = Describe("DBaaSInstance controller with errors", func() {
 	Context("after creating DBaaSInstance with inventory that is not ready", func() {
 		instanceName := "test-instance-not-ready"
 		inventoryName := "test-instance-inventory-not-ready"
-		DBaaSInventorySpec := &v1alpha2.DBaaSInventorySpec{
-			CredentialsRef: &v1alpha2.LocalObjectReference{
+		DBaaSInventorySpec := &v1beta1.DBaaSInventorySpec{
+			CredentialsRef: &v1beta1.LocalObjectReference{
 				Name: testSecret.Name,
 			},
 		}
-		createdDBaaSInventory := &v1alpha2.DBaaSInventory{
+		createdDBaaSInventory := &v1beta1.DBaaSInventory{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      inventoryName,
 				Namespace: testNamespace,
 			},
-			Spec: v1alpha2.DBaaSOperatorInventorySpec{
-				ProviderRef: v1alpha2.NamespacedName{
+			Spec: v1beta1.DBaaSOperatorInventorySpec{
+				ProviderRef: v1beta1.NamespacedName{
 					Name: testProviderName,
 				},
 				DBaaSInventorySpec: *DBaaSInventorySpec,
@@ -95,12 +95,11 @@ var _ = Describe("DBaaSInstance controller with errors", func() {
 			Spec: *DBaaSInstanceSpec,
 		}
 		lastTransitionTime := getLastTransitionTimeForTest()
-		providerInventoryStatus := &v1alpha2.DBaaSInventoryStatus{
-			DatabaseServices: []v1alpha2.DatabaseService{
+		providerInventoryStatus := &v1beta1.DBaaSInventoryStatus{
+			DatabaseServices: []v1beta1.DatabaseService{
 				{
 					ServiceID:   "testInstanceID",
 					ServiceName: "testInstance",
-					ServiceType: v1alpha2.InstanceDatabaseService,
 					ServiceInfo: map[string]string{
 						"testInstanceInfo": "testInstanceInfo",
 					},
@@ -128,21 +127,21 @@ var _ = Describe("DBaaSInstance controller with errors", func() {
 	Context("after creating DBaaSInstance in an invalid namespace", func() {
 		instanceName := "test-instance-not-ready-2"
 		inventoryName := "test-instance-inventory-diff-ns"
-		DBaaSInventorySpec := &v1alpha2.DBaaSInventorySpec{
-			CredentialsRef: &v1alpha2.LocalObjectReference{
+		DBaaSInventorySpec := &v1beta1.DBaaSInventorySpec{
+			CredentialsRef: &v1beta1.LocalObjectReference{
 				Name: testSecret.Name,
 			},
 		}
-		createdDBaaSInventory := &v1alpha2.DBaaSInventory{
+		createdDBaaSInventory := &v1beta1.DBaaSInventory{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      inventoryName,
 				Namespace: testNamespace,
 			},
-			Spec: v1alpha2.DBaaSOperatorInventorySpec{
-				ProviderRef: v1alpha2.NamespacedName{
+			Spec: v1beta1.DBaaSOperatorInventorySpec{
+				ProviderRef: v1beta1.NamespacedName{
 					Name: testProviderName,
 				},
-				DBaaSInventoryPolicy: v1alpha2.DBaaSInventoryPolicy{
+				DBaaSInventoryPolicy: v1beta1.DBaaSInventoryPolicy{
 					ConnectionNamespaces: &[]string{"valid-ns", "random"},
 				},
 				DBaaSInventorySpec: *DBaaSInventorySpec,
@@ -173,12 +172,11 @@ var _ = Describe("DBaaSInstance controller with errors", func() {
 			Spec: *DBaaSInstanceSpec,
 		}
 		lastTransitionTime := getLastTransitionTimeForTest()
-		providerInventoryStatus := &v1alpha2.DBaaSInventoryStatus{
-			DatabaseServices: []v1alpha2.DatabaseService{
+		providerInventoryStatus := &v1beta1.DBaaSInventoryStatus{
+			DatabaseServices: []v1beta1.DatabaseService{
 				{
 					ServiceID:   "testInstanceID",
 					ServiceName: "testInstance",
-					ServiceType: v1alpha2.InstanceDatabaseService,
 					ServiceInfo: map[string]string{
 						"testInstanceInfo": "testInstanceInfo",
 					},
@@ -215,29 +213,28 @@ var _ = Describe("DBaaSInstance controller - nominal", func() {
 	Describe("reconcile", func() {
 		Context("after creating DBaaSInventory", func() {
 			inventoryRefName := "test-inventory-ref"
-			createdDBaaSInventory := &v1alpha2.DBaaSInventory{
+			createdDBaaSInventory := &v1beta1.DBaaSInventory{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      inventoryRefName,
 					Namespace: testNamespace,
 				},
-				Spec: v1alpha2.DBaaSOperatorInventorySpec{
-					ProviderRef: v1alpha2.NamespacedName{
+				Spec: v1beta1.DBaaSOperatorInventorySpec{
+					ProviderRef: v1beta1.NamespacedName{
 						Name: testProviderName,
 					},
-					DBaaSInventorySpec: v1alpha2.DBaaSInventorySpec{
-						CredentialsRef: &v1alpha2.LocalObjectReference{
+					DBaaSInventorySpec: v1beta1.DBaaSInventorySpec{
+						CredentialsRef: &v1beta1.LocalObjectReference{
 							Name: testSecret.Name,
 						},
 					},
 				},
 			}
 			lastTransitionTime := getLastTransitionTimeForTest()
-			providerInventoryStatus := &v1alpha2.DBaaSInventoryStatus{
-				DatabaseServices: []v1alpha2.DatabaseService{
+			providerInventoryStatus := &v1beta1.DBaaSInventoryStatus{
+				DatabaseServices: []v1beta1.DatabaseService{
 					{
 						ServiceID:   "testInstanceID",
 						ServiceName: "testInstance",
-						ServiceType: v1alpha2.InstanceDatabaseService,
 						ServiceInfo: map[string]string{
 							"testInstanceInfo": "testInstanceInfo",
 						},
@@ -333,32 +330,31 @@ var _ = Describe("DBaaSInstance controller - valid dev namespaces", func() {
 				},
 			}
 			inventoryRefName := "test-inventory-ref-2"
-			createdDBaaSInventory := &v1alpha2.DBaaSInventory{
+			createdDBaaSInventory := &v1beta1.DBaaSInventory{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      inventoryRefName,
 					Namespace: testNamespace,
 				},
-				Spec: v1alpha2.DBaaSOperatorInventorySpec{
-					ProviderRef: v1alpha2.NamespacedName{
+				Spec: v1beta1.DBaaSOperatorInventorySpec{
+					ProviderRef: v1beta1.NamespacedName{
 						Name: testProviderName,
 					},
-					DBaaSInventoryPolicy: v1alpha2.DBaaSInventoryPolicy{
+					DBaaSInventoryPolicy: v1beta1.DBaaSInventoryPolicy{
 						ConnectionNamespaces: &[]string{otherNS.Name},
 					},
-					DBaaSInventorySpec: v1alpha2.DBaaSInventorySpec{
-						CredentialsRef: &v1alpha2.LocalObjectReference{
+					DBaaSInventorySpec: v1beta1.DBaaSInventorySpec{
+						CredentialsRef: &v1beta1.LocalObjectReference{
 							Name: testSecret.Name,
 						},
 					},
 				},
 			}
 			lastTransitionTime := getLastTransitionTimeForTest()
-			providerInventoryStatus := &v1alpha2.DBaaSInventoryStatus{
-				DatabaseServices: []v1alpha2.DatabaseService{
+			providerInventoryStatus := &v1beta1.DBaaSInventoryStatus{
+				DatabaseServices: []v1beta1.DatabaseService{
 					{
 						ServiceID:   "testInstanceID",
 						ServiceName: "testInstance",
-						ServiceType: v1alpha2.InstanceDatabaseService,
 						ServiceInfo: map[string]string{
 							"testInstanceInfo": "testInstanceInfo",
 						},
@@ -448,32 +444,31 @@ var _ = Describe("DBaaSInstance controller - valid dev namespaces", func() {
 				},
 			}
 			inventoryRefName := "test-inventory-ref-3"
-			createdDBaaSInventory := &v1alpha2.DBaaSInventory{
+			createdDBaaSInventory := &v1beta1.DBaaSInventory{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      inventoryRefName,
 					Namespace: testNamespace,
 				},
-				Spec: v1alpha2.DBaaSOperatorInventorySpec{
-					ProviderRef: v1alpha2.NamespacedName{
+				Spec: v1beta1.DBaaSOperatorInventorySpec{
+					ProviderRef: v1beta1.NamespacedName{
 						Name: testProviderName,
 					},
-					DBaaSInventoryPolicy: v1alpha2.DBaaSInventoryPolicy{
+					DBaaSInventoryPolicy: v1beta1.DBaaSInventoryPolicy{
 						ConnectionNamespaces: &[]string{"*"},
 					},
-					DBaaSInventorySpec: v1alpha2.DBaaSInventorySpec{
-						CredentialsRef: &v1alpha2.LocalObjectReference{
+					DBaaSInventorySpec: v1beta1.DBaaSInventorySpec{
+						CredentialsRef: &v1beta1.LocalObjectReference{
 							Name: testSecret.Name,
 						},
 					},
 				},
 			}
 			lastTransitionTime := getLastTransitionTimeForTest()
-			providerInventoryStatus := &v1alpha2.DBaaSInventoryStatus{
-				DatabaseServices: []v1alpha2.DatabaseService{
+			providerInventoryStatus := &v1beta1.DBaaSInventoryStatus{
+				DatabaseServices: []v1beta1.DatabaseService{
 					{
 						ServiceID:   "testInstanceID",
 						ServiceName: "testInstance",
-						ServiceType: v1alpha2.InstanceDatabaseService,
 						ServiceInfo: map[string]string{
 							"testInstanceInfo": "testInstanceInfo",
 						},
@@ -564,33 +559,32 @@ var _ = Describe("DBaaSInstance controller - valid dev namespaces", func() {
 			}
 			isTrue := true
 			inventoryRefName := "test-inventory-ref-4"
-			createdDBaaSInventory := &v1alpha2.DBaaSInventory{
+			createdDBaaSInventory := &v1beta1.DBaaSInventory{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      inventoryRefName,
 					Namespace: testNamespace,
 				},
-				Spec: v1alpha2.DBaaSOperatorInventorySpec{
-					ProviderRef: v1alpha2.NamespacedName{
+				Spec: v1beta1.DBaaSOperatorInventorySpec{
+					ProviderRef: v1beta1.NamespacedName{
 						Name: testProviderName,
 					},
-					DBaaSInventoryPolicy: v1alpha2.DBaaSInventoryPolicy{
+					DBaaSInventoryPolicy: v1beta1.DBaaSInventoryPolicy{
 						ConnectionNamespaces: &[]string{"*"},
 						DisableProvisions:    &isTrue,
 					},
-					DBaaSInventorySpec: v1alpha2.DBaaSInventorySpec{
-						CredentialsRef: &v1alpha2.LocalObjectReference{
+					DBaaSInventorySpec: v1beta1.DBaaSInventorySpec{
+						CredentialsRef: &v1beta1.LocalObjectReference{
 							Name: testSecret.Name,
 						},
 					},
 				},
 			}
 			lastTransitionTime := getLastTransitionTimeForTest()
-			providerInventoryStatus := &v1alpha2.DBaaSInventoryStatus{
-				DatabaseServices: []v1alpha2.DatabaseService{
+			providerInventoryStatus := &v1beta1.DBaaSInventoryStatus{
+				DatabaseServices: []v1beta1.DatabaseService{
 					{
 						ServiceID:   "testInstanceID",
 						ServiceName: "testInstance",
-						ServiceType: v1alpha2.InstanceDatabaseService,
 						ServiceInfo: map[string]string{
 							"testInstanceInfo": "testInstanceInfo",
 						},

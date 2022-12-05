@@ -49,7 +49,7 @@ import (
 	msoapi "github.com/rhobs/observability-operator/pkg/apis/monitoring/v1alpha1"
 
 	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha1"
-	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha2"
+	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1beta1"
 	"github.com/RHEcosystemAppEng/dbaas-operator/controllers"
 	metrics "github.com/RHEcosystemAppEng/dbaas-operator/controllers/metrics"
 	//+kubebuilder:scaffold:imports
@@ -70,7 +70,7 @@ func init() {
 	customMetrics.Registry.MustRegister(metrics.DBaaSRequestsErrorsCounter)
 
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
-	utilruntime.Must(v1alpha2.AddToScheme(scheme))
+	utilruntime.Must(v1beta1.AddToScheme(scheme))
 	utilruntime.Must(operatorframework.AddToScheme(scheme))
 	utilruntime.Must(coreosv1.AddToScheme(scheme))
 	utilruntime.Must(consolev1alpha1.Install(scheme))
@@ -187,11 +187,11 @@ func main() {
 			setupLog.Error(err, "unable to create webhook", "webhook", "DBaaSPolicy")
 			os.Exit(1)
 		}
-		if err = (&v1alpha2.DBaaSConnection{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = (&v1beta1.DBaaSConnection{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "DBaaSConnection")
 			os.Exit(1)
 		}
-		if err = (&v1alpha2.DBaaSInventory{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = (&v1beta1.DBaaSInventory{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "DBaaSInventory")
 			os.Exit(1)
 		}

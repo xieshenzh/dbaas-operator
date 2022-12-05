@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha2
+package v1beta1
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -96,7 +96,7 @@ var _ = Describe("DBaaSConnection Webhook", func() {
 					spec.InventoryRef.Name = "updated-inventory"
 				},
 				"admission webhook \"vdbaasconnection.kb.io\" denied the request: "+
-					"spec.inventoryRef: Invalid value: v1alpha2.NamespacedName{Namespace:\"default\", Name:\"updated-inventory\"}: "+
+					"spec.inventoryRef: Invalid value: v1beta1.NamespacedName{Namespace:\"default\", Name:\"updated-inventory\"}: "+
 					"inventoryRef is immutable"),
 			Entry("not allow updating databaseServiceRef",
 				func(spec *DBaaSConnectionSpec) {
@@ -106,7 +106,7 @@ var _ = Describe("DBaaSConnection Webhook", func() {
 					}
 				},
 				"admission webhook \"vdbaasconnection.kb.io\" denied the request: "+
-					"spec.databaseServiceRef: Invalid value: v1alpha2.NamespacedName{Namespace:\"default\", Name:\"updated-databaseService\"}: "+
+					"spec.databaseServiceRef: Invalid value: v1beta1.NamespacedName{Namespace:\"default\", Name:\"updated-databaseService\"}: "+
 					"databaseServiceRef is immutable"),
 		)
 	})
@@ -265,7 +265,7 @@ var _ = Describe("DBaaSConnection Webhook", func() {
 			}
 			err := k8sClient.Update(ctx, testDBaaSConnectionNoDatabaseServiceRef)
 			Expect(err).Should(MatchError("admission webhook \"vdbaasconnection.kb.io\" denied the request: " +
-				"spec.databaseServiceRef: Invalid value: v1alpha2.NamespacedName{Namespace:\"default\", Name:\"test-databaseService\"}: " +
+				"spec.databaseServiceRef: Invalid value: v1beta1.NamespacedName{Namespace:\"default\", Name:\"test-databaseService\"}: " +
 				"databaseServiceRef is immutable"))
 		})
 	})

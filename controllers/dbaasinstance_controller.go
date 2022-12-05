@@ -31,7 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 
 	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha1"
-	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha2"
+	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1beta1"
 	metrics "github.com/RHEcosystemAppEng/dbaas-operator/controllers/metrics"
 )
 
@@ -75,7 +75,7 @@ func (r *DBaaSInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	if inventory, validNS, provision, err := r.checkInventory(ctx,
-		v1alpha2.NamespacedName{
+		v1beta1.NamespacedName{
 			Name:      instance.Spec.InventoryRef.Name,
 			Namespace: instance.Spec.InventoryRef.Namespace,
 		},
@@ -179,7 +179,7 @@ func (r *DBaaSInstanceReconciler) Delete(e event.DeleteEvent) error {
 	}
 	log.Info("instanceObj", "instanceObj", objectKeyFromObject(instanceObj))
 
-	inventory := &v1alpha2.DBaaSInventory{}
+	inventory := &v1beta1.DBaaSInventory{}
 	_ = r.Get(context.TODO(), types.NamespacedName{Namespace: instanceObj.Spec.InventoryRef.Namespace, Name: instanceObj.Spec.InventoryRef.Name}, inventory)
 
 	defer func() {

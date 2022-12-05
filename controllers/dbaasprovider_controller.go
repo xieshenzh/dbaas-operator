@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha1"
-	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha2"
+	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1beta1"
 	metrics "github.com/RHEcosystemAppEng/dbaas-operator/controllers/metrics"
 )
 
@@ -73,14 +73,14 @@ func (r *DBaaSProviderReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		event = metrics.LabelEventValueCreate
 	}
 
-	if err := r.watchDBaaSProviderObject(r.InventoryCtrl, &v1alpha2.DBaaSInventory{}, &v1alpha2.GroupVersion, provider.Spec.InventoryKind); err != nil {
+	if err := r.watchDBaaSProviderObject(r.InventoryCtrl, &v1beta1.DBaaSInventory{}, &v1beta1.GroupVersion, provider.Spec.InventoryKind); err != nil {
 		logger.Error(err, "Error watching Provider Inventory CR", "Kind", provider.Spec.InventoryKind)
 		metricLabelErrCdValue = metrics.LabelErrorCdValueErrorWatchingInventoryCR
 		return ctrl.Result{}, err
 	}
 	logger.Info("Watching Provider Inventory CR", "Kind", provider.Spec.InventoryKind)
 
-	if err := r.watchDBaaSProviderObject(r.ConnectionCtrl, &v1alpha2.DBaaSConnection{}, &v1alpha2.GroupVersion, provider.Spec.ConnectionKind); err != nil {
+	if err := r.watchDBaaSProviderObject(r.ConnectionCtrl, &v1beta1.DBaaSConnection{}, &v1beta1.GroupVersion, provider.Spec.ConnectionKind); err != nil {
 		logger.Error(err, "Error watching Provider Connection CR", "Kind", provider.Spec.ConnectionKind)
 		metricLabelErrCdValue = metrics.LabelErrorCdValueErrorWatchingConnectionCR
 		return ctrl.Result{}, err

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha2
+package v1beta1
 
 import (
 	corev1 "k8s.io/api/core/v1"
@@ -36,9 +36,7 @@ type DBaaSConnectionSpec struct {
 
 	// The type of the database service to connect to, as seen in the Status of
 	// the referenced DBaaSInventory
-	// +kubebuilder:validation:Enum=instance;cluster
-	// +kubebuilder:default=instance
-	DatabaseServiceType DatabaseServiceType `json:"serviceType,omitempty"`
+	DatabaseServiceType DatabaseServiceType `json:"databaseServiceType,omitempty"`
 }
 
 // DBaaSConnectionStatus defines the observed state of DBaaSConnection

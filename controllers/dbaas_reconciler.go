@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha1"
-	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha2"
+	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1beta1"
 	"github.com/go-logr/logr"
 
 	corev1 "k8s.io/api/core/v1"
@@ -114,7 +114,7 @@ func (r *DBaaSReconciler) policyListByNS(ctx context.Context, namespace string) 
 }
 
 // check if namespace is a valid connection namespace
-func (r *DBaaSReconciler) isValidConnectionNS(ctx context.Context, namespace string, inventory *v1alpha2.DBaaSInventory) (bool, error) {
+func (r *DBaaSReconciler) isValidConnectionNS(ctx context.Context, namespace string, inventory *v1beta1.DBaaSInventory) (bool, error) {
 	// valid if in same namespace as inventory
 	if namespace == inventory.Namespace {
 		return true, nil
@@ -162,7 +162,7 @@ func (r *DBaaSReconciler) isValidConnectionNS(ctx context.Context, namespace str
 }
 
 // check if provisioning is allowed against an inventory. inventory takes precedence over dbaaspolicy.
-func canProvision(inventory v1alpha2.DBaaSInventory, activePolicy *v1alpha1.DBaaSPolicy) bool {
+func canProvision(inventory v1beta1.DBaaSInventory, activePolicy *v1alpha1.DBaaSPolicy) bool {
 	if activePolicy == nil {
 		// not an active namespace
 		return false
@@ -253,9 +253,9 @@ func (r *DBaaSReconciler) reconcileProviderResource(ctx context.Context, provide
 	return
 }
 
-func (r *DBaaSReconciler) checkInventory(ctx context.Context, inventoryRef v1alpha2.NamespacedName, DBaaSObject client.Object,
-	statusErrorFn func(string, string), logger logr.Logger) (inventory *v1alpha2.DBaaSInventory, validNS, provision bool, err error) {
-	inventory = &v1alpha2.DBaaSInventory{}
+func (r *DBaaSReconciler) checkInventory(ctx context.Context, inventoryRef v1beta1.NamespacedName, DBaaSObject client.Object,
+	statusErrorFn func(string, string), logger logr.Logger) (inventory *v1beta1.DBaaSInventory, validNS, provision bool, err error) {
+	inventory = &v1beta1.DBaaSInventory{}
 	if err = r.Get(ctx, types.NamespacedName{Namespace: inventoryRef.Namespace, Name: inventoryRef.Name}, inventory); err != nil {
 		if errors.IsNotFound(err) {
 			logger.Error(err, "DBaaS Inventory resource not found for DBaaS Object", "DBaaS Object", DBaaSObject, "DBaaS Inventory", inventoryRef)
@@ -313,7 +313,7 @@ func (r *DBaaSReconciler) checkInventory(ctx context.Context, inventoryRef v1alp
 	return
 }
 
-func (r *DBaaSReconciler) checkCredsRefLabel(ctx context.Context, inventory v1alpha2.DBaaSInventory) error {
+func (r *DBaaSReconciler) checkCredsRefLabel(ctx context.Context, inventory v1beta1.DBaaSInventory) error {
 	if inventory.Spec.CredentialsRef != nil && len(inventory.Spec.CredentialsRef.Name) != 0 {
 		secret := corev1.Secret{}
 		if err := r.Get(ctx, types.NamespacedName{

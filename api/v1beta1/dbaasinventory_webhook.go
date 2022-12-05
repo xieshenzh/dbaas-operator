@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha2
+package v1beta1
 
 import (
 	"context"
@@ -59,7 +59,7 @@ func (r *DBaaSInventory) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-//+kubebuilder:webhook:path=/validate-dbaas-redhat-com-v1alpha2-dbaasinventory,mutating=false,failurePolicy=fail,sideEffects=None,groups=dbaas.redhat.com,resources=dbaasinventories,verbs=create;update,versions=v1alpha2,name=vdbaasinventory.kb.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/validate-dbaas-redhat-com-v1beta1-dbaasinventory,mutating=false,failurePolicy=fail,sideEffects=None,groups=dbaas.redhat.com,resources=dbaasinventories,verbs=create;update,versions=v1beta1,name=vdbaasinventory.kb.io,admissionReviewVersions=v1beta1
 
 var _ webhook.Validator = &DBaaSInventory{}
 

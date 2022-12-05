@@ -19,25 +19,24 @@ package v1alpha1
 import (
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 
-	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha2"
+	"github.com/RHEcosystemAppEng/dbaas-operator/api/v1beta1"
 )
 
-// ConvertTo converts this DBaaSConnection to the Hub version (v1alpha2).
+// ConvertTo converts this DBaaSConnection to the Hub version (v1beta1).
 func (src *DBaaSConnection) ConvertTo(dstRaw conversion.Hub) error {
-	dst := dstRaw.(*v1alpha2.DBaaSConnection)
+	dst := dstRaw.(*v1beta1.DBaaSConnection)
 
-	dst.Spec.InventoryRef = v1alpha2.NamespacedName{
+	dst.Spec.InventoryRef = v1beta1.NamespacedName{
 		Name:      src.Spec.InventoryRef.Name,
 		Namespace: src.Spec.InventoryRef.Namespace,
 	}
 	dst.Spec.DatabaseServiceID = src.Spec.InstanceID
 	if src.Spec.InstanceRef != nil {
-		dst.Spec.DatabaseServiceRef = &v1alpha2.NamespacedName{
+		dst.Spec.DatabaseServiceRef = &v1beta1.NamespacedName{
 			Name:      src.Spec.InstanceRef.Name,
 			Namespace: src.Spec.InstanceRef.Namespace,
 		}
 	}
-	dst.Spec.DatabaseServiceType = v1alpha2.InstanceDatabaseService
 
 	dst.ObjectMeta = src.ObjectMeta
 
@@ -48,21 +47,19 @@ func (src *DBaaSConnection) ConvertTo(dstRaw conversion.Hub) error {
 	return nil
 }
 
-// ConvertFrom converts from the Hub version (v1alpha2) to this version.
+// ConvertFrom converts from the Hub version (v1beta1) to this version.
 func (dst *DBaaSConnection) ConvertFrom(srcRaw conversion.Hub) error {
-	src := srcRaw.(*v1alpha2.DBaaSConnection)
+	src := srcRaw.(*v1beta1.DBaaSConnection)
 
 	dst.Spec.InventoryRef = NamespacedName{
 		Name:      src.Spec.InventoryRef.Name,
 		Namespace: src.Spec.InventoryRef.Namespace,
 	}
-	if src.Spec.DatabaseServiceType == v1alpha2.InstanceDatabaseService {
-		dst.Spec.InstanceID = src.Spec.DatabaseServiceID
-		if src.Spec.DatabaseServiceRef != nil {
-			dst.Spec.InstanceRef = &NamespacedName{
-				Name:      src.Spec.DatabaseServiceRef.Name,
-				Namespace: src.Spec.DatabaseServiceRef.Namespace,
-			}
+	dst.Spec.InstanceID = src.Spec.DatabaseServiceID
+	if src.Spec.DatabaseServiceRef != nil {
+		dst.Spec.InstanceRef = &NamespacedName{
+			Name:      src.Spec.DatabaseServiceRef.Name,
+			Namespace: src.Spec.DatabaseServiceRef.Namespace,
 		}
 	}
 

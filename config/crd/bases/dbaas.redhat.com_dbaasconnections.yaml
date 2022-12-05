@@ -167,7 +167,7 @@ spec:
     storage: false
     subresources:
       status: {}
-  - name: v1alpha2
+  - name: v1beta1
     schema:
       openAPIV3Schema:
         description: DBaaSConnection is the Schema for the dbaasconnections API
@@ -204,6 +204,10 @@ spec:
                 required:
                 - name
                 type: object
+              databaseServiceType:
+                description: The type of the database service to connect to, as seen
+                  in the Status of the referenced DBaaSInventory
+                type: string
               inventoryRef:
                 description: A reference to the relevant DBaaSInventory CR
                 properties:
@@ -216,14 +220,6 @@ spec:
                 required:
                 - name
                 type: object
-              serviceType:
-                default: instance
-                description: The type of the database service to connect to, as seen
-                  in the Status of the referenced DBaaSInventory
-                enum:
-                - instance
-                - cluster
-                type: string
             required:
             - inventoryRef
             type: object

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha2
+package v1beta1
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -304,7 +304,7 @@ var _ = Describe("DBaaSInventory Webhook", func() {
 			})
 			It("missing required credential fields", func() {
 				err := k8sClient.Create(ctx, testDBaaSInventory)
-				Expect(err).Should(MatchError("admission webhook \"vdbaasinventory.kb.io\" denied the request: spec.credentialsRef: Invalid value: v1alpha2.LocalObjectReference{Name:\"testsecret\"}: credentialsRef is invalid: field1 is required in secret testsecret"))
+				Expect(err).Should(MatchError("admission webhook \"vdbaasinventory.kb.io\" denied the request: spec.credentialsRef: Invalid value: v1beta1.LocalObjectReference{Name:\"testsecret\"}: credentialsRef is invalid: field1 is required in secret testsecret"))
 			})
 		})
 	Context("update",
@@ -335,7 +335,7 @@ var _ = Describe("DBaaSInventory Webhook", func() {
 					Expect(k8sClient.Get(ctx, client.ObjectKeyFromObject(inv), inv)).Should(Succeed())
 					inv.Spec.CredentialsRef.Name = testSecretNameUpdate
 					err := k8sClient.Update(ctx, inv)
-					Expect(err).Should(MatchError("admission webhook \"vdbaasinventory.kb.io\" denied the request: spec.credentialsRef: Invalid value: v1alpha2.LocalObjectReference{Name:\"testsecretupdate\"}: credentialsRef is invalid: field1 is required in secret testsecretupdate"))
+					Expect(err).Should(MatchError("admission webhook \"vdbaasinventory.kb.io\" denied the request: spec.credentialsRef: Invalid value: v1beta1.LocalObjectReference{Name:\"testsecretupdate\"}: credentialsRef is invalid: field1 is required in secret testsecretupdate"))
 				})
 				It("update fails with missing required values field", func() {
 					inv := testDBaaSInventory.DeepCopy()

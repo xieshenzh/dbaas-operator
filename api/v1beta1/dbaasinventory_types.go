@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha2
+package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -76,8 +76,6 @@ type DatabaseService struct {
 	ServiceName string `json:"serviceName,omitempty"`
 
 	// The type of the database service
-	// +kubebuilder:validation:Enum=instance;cluster
-	// +kubebuilder:default=instance
 	ServiceType DatabaseServiceType `json:"serviceType,omitempty"`
 
 	// Any other provider-specific information related to this service
