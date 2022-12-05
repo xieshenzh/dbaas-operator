@@ -33,7 +33,7 @@ type DBaaSConnectionSpec struct {
 	DatabaseServiceRef *NamespacedName `json:"databaseServiceRef,omitempty"`
 
 	// The type of the database service to connect to, as seen in the status of the referenced DBaaSInventory.
-	DatabaseServiceType DatabaseServiceType `json:"databaseServiceType,omitempty"`
+	DatabaseServiceType *DatabaseServiceType `json:"databaseServiceType,omitempty"`
 }
 
 // Defines the observed state of a DBaaSConnection object.

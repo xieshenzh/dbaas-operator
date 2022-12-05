@@ -272,7 +272,7 @@ func (r *DBaaSConnectionReconciler) getConnectionSpec(ctx context.Context, spec 
 		return nil, fmt.Errorf("database service reference is not properly set")
 	}
 
-	if len(spec.DatabaseServiceType) == 0 {
+	if spec.DatabaseServiceType == nil || len(*spec.DatabaseServiceType) == 0 {
 		instance := &v1alpha1.DBaaSInstance{}
 		if err := r.Get(ctx, types.NamespacedName{
 			Name:      databaseServiceRef.Name,
@@ -293,7 +293,7 @@ func (r *DBaaSConnectionReconciler) getConnectionSpec(ctx context.Context, spec 
 		spec.DatabaseServiceID = instance.Status.InstanceID
 		spec.DatabaseServiceRef = nil
 	} else {
-		return nil, fmt.Errorf("using database service reference of type %s is not supported", spec.DatabaseServiceType)
+		return nil, fmt.Errorf("using database service reference of type %v is not supported", spec.DatabaseServiceType)
 	}
 	return spec, nil
 }
