@@ -16,25 +16,25 @@ limitations under the License.
 
 package v1beta1
 
+// Constants for DBaaS condition types, reasons, messages and type labels.
 const (
 	DBaaSServiceNotAvailable string = "DBaaSServiceNotAvailable"
 )
 
-// LocalObjectReference contains enough information to let you locate the
-// referenced object inside the same namespace.
+// Contains enough information to locate the referenced object inside the same namespace.
 type LocalObjectReference struct {
 	// Name of the referent.
 	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
 }
 
-// NamespacedName defines the namespace and name of a k8s resource
+// Defines the namespace and name of a k8s resource.
 type NamespacedName struct {
-	// The namespace where object of known type is stored
+	// The namespace where an object of a known type is stored.
 	Namespace string `json:"namespace,omitempty"`
 
-	// The name for object of known type
+	// The name for object of a known type.
 	Name string `json:"name"`
 }
 
-// DatabaseServiceType type of the supported database service
+// Defines the type of the supported database service.
 type DatabaseServiceType string

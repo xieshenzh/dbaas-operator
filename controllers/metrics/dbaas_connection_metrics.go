@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 
 	dbaasv1alpha1 "github.com/RHEcosystemAppEng/dbaas-operator/api/v1alpha1"
+	dbaasv1beta1 "github.com/RHEcosystemAppEng/dbaas-operator/api/v1beta1"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -37,7 +38,7 @@ var DBaaSConnectionStatusGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 }, []string{MetricLabelProvider, MetricLabelAccountName, MetricLabelInstanceID, MetricLabelConnectionName, MetricLabelNameSpace, MetricLabelStatus, MetricLabelReason})
 
 // SetConnectionMetrics set the Metrics for a connection
-func SetConnectionMetrics(provider string, account string, connection dbaasv1alpha1.DBaaSConnection, execution Execution, event string, errCd string) {
+func SetConnectionMetrics(provider string, account string, connection dbaasv1beta1.DBaaSConnection, execution Execution, event string, errCd string) {
 	log := ctrl.Log.WithName("Setting DBaaSConnection Metrics")
 	log.Info("provider - " + provider + " account - " + account + " namespace - " + connection.Namespace + " event - " + event + " errCd - " + errCd)
 	setConnectionStatusMetrics(provider, account, connection)
@@ -46,14 +47,14 @@ func SetConnectionMetrics(provider string, account string, connection dbaasv1alp
 }
 
 // setConnectionStatusMetrics set the Metrics based on connection status
-func setConnectionStatusMetrics(provider string, account string, connection dbaasv1alpha1.DBaaSConnection) {
+func setConnectionStatusMetrics(provider string, account string, connection dbaasv1beta1.DBaaSConnection) {
 	for _, cond := range connection.Status.Conditions {
 		if cond.Type == dbaasv1alpha1.DBaaSConnectionReadyType {
 			DBaaSConnectionStatusGauge.DeletePartialMatch(prometheus.Labels{MetricLabelName: connection.Name, MetricLabelNameSpace: connection.Namespace})
 			if cond.Reason == dbaasv1alpha1.Ready && cond.Status == metav1.ConditionTrue {
-				DBaaSConnectionStatusGauge.With(prometheus.Labels{MetricLabelProvider: provider, MetricLabelAccountName: account, MetricLabelInstanceID: connection.Spec.InstanceID, MetricLabelConnectionName: connection.GetName(), MetricLabelNameSpace: connection.Namespace, MetricLabelStatus: string(cond.Status), MetricLabelReason: cond.Reason}).Set(1)
+				DBaaSConnectionStatusGauge.With(prometheus.Labels{MetricLabelProvider: provider, MetricLabelAccountName: account, MetricLabelInstanceID: connection.Spec.DatabaseServiceID, MetricLabelConnectionName: connection.GetName(), MetricLabelNameSpace: connection.Namespace, MetricLabelStatus: string(cond.Status), MetricLabelReason: cond.Reason}).Set(1)
 			} else {
-				DBaaSConnectionStatusGauge.With(prometheus.Labels{MetricLabelProvider: provider, MetricLabelAccountName: account, MetricLabelInstanceID: connection.Spec.InstanceID, MetricLabelConnectionName: connection.GetName(), MetricLabelNameSpace: connection.Namespace, MetricLabelStatus: string(cond.Status), MetricLabelReason: cond.Reason}).Set(0)
+				DBaaSConnectionStatusGauge.With(prometheus.Labels{MetricLabelProvider: provider, MetricLabelAccountName: account, MetricLabelInstanceID: connection.Spec.DatabaseServiceID, MetricLabelConnectionName: connection.GetName(), MetricLabelNameSpace: connection.Namespace, MetricLabelStatus: string(cond.Status), MetricLabelReason: cond.Reason}).Set(0)
 			}
 			break
 		}
@@ -61,7 +62,7 @@ func setConnectionStatusMetrics(provider string, account string, connection dbaa
 }
 
 // setConnectionRequestDurationSeconds set the Metrics for connection request duration in seconds
-func setConnectionRequestDurationSeconds(provider string, account string, connection dbaasv1alpha1.DBaaSConnection, execution Execution, event string) {
+func setConnectionRequestDurationSeconds(provider string, account string, connection dbaasv1beta1.DBaaSConnection, execution Execution, event string) {
 	log := ctrl.Log.WithName("Connection Request Duration for event: " + event)
 	switch event {
 	case LabelEventValueCreate:

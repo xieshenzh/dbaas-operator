@@ -80,15 +80,15 @@ func (r *DBaaSInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			Namespace: instance.Spec.InventoryRef.Namespace,
 		},
 		&instance, func(reason string, message string) {
-		cond := metav1.Condition{
-			Type:    v1alpha1.DBaaSInstanceReadyType,
-			Status:  metav1.ConditionFalse,
-			Reason:  reason,
-			Message: message,
-		}
-		apimeta.SetStatusCondition(&instance.Status.Conditions, cond)
-		instance.Status.Phase = v1alpha1.InstancePhaseError
-	}, logger); err != nil {
+			cond := metav1.Condition{
+				Type:    v1alpha1.DBaaSInstanceReadyType,
+				Status:  metav1.ConditionFalse,
+				Reason:  reason,
+				Message: message,
+			}
+			apimeta.SetStatusCondition(&instance.Status.Conditions, cond)
+			instance.Status.Phase = v1alpha1.InstancePhaseError
+		}, logger); err != nil {
 		metricLabelErrCdValue = metrics.LabelErrorCdValueErrorCheckingInstanceInventory
 		return ctrl.Result{}, err
 	} else if !validNS {

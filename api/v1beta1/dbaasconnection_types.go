@@ -21,32 +21,29 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// DBaaSConnectionSpec defines the desired state of DBaaSConnection
+// Defines the desired state of a DBaaSConnection object.
 type DBaaSConnectionSpec struct {
-	// A reference to the relevant DBaaSInventory CR
+	// A reference to the relevant DBaaSInventory custom resource (CR).
 	InventoryRef NamespacedName `json:"inventoryRef"`
 
-	// The ID of the database service to connect to, as seen in the Status of
-	// the referenced DBaaSInventory
+	// The ID of the database service to connect to, as seen in the status of the referenced DBaaSInventory.
 	DatabaseServiceID string `json:"databaseServiceID,omitempty"`
 
-	// A reference to the database service CR that is used if the ID of the
-	// service is not specified
+	// A reference to the database service CR used, if the DatabaseServiceID is not specified.
 	DatabaseServiceRef *NamespacedName `json:"databaseServiceRef,omitempty"`
 
-	// The type of the database service to connect to, as seen in the Status of
-	// the referenced DBaaSInventory
+	// The type of the database service to connect to, as seen in the status of the referenced DBaaSInventory.
 	DatabaseServiceType DatabaseServiceType `json:"databaseServiceType,omitempty"`
 }
 
-// DBaaSConnectionStatus defines the observed state of DBaaSConnection
+// Defines the observed state of a DBaaSConnection object.
 type DBaaSConnectionStatus struct {
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
-	// Secret holding the credentials needed for accessing the DB instance
+	// The secret holding account credentials for accessing the database instance.
 	CredentialsRef *corev1.LocalObjectReference `json:"credentialsRef,omitempty"`
 
-	// A ConfigMap holding non-sensitive information needed for connecting to the DB instance
+	// A ConfigMap object holding non-sensitive information for connecting to the database instance.
 	ConnectionInfoRef *corev1.LocalObjectReference `json:"connectionInfoRef,omitempty"`
 }
 
@@ -54,7 +51,7 @@ type DBaaSConnectionStatus struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:storageversion
 
-// DBaaSConnection is the Schema for the dbaasconnections API
+// The schema for the DBaaSConnection API.
 //+operator-sdk:csv:customresourcedefinitions:displayName="DBaaSConnection"
 type DBaaSConnection struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -66,7 +63,7 @@ type DBaaSConnection struct {
 
 //+kubebuilder:object:root=true
 
-// DBaaSConnectionList contains a list of DBaaSConnection
+// Contains a list of DBaaSConnections.
 type DBaaSConnectionList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
@@ -77,6 +74,7 @@ func init() {
 	SchemeBuilder.Register(&DBaaSConnection{}, &DBaaSConnectionList{})
 }
 
+// The schema for a provider's connection status.
 type DBaaSProviderConnection struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 

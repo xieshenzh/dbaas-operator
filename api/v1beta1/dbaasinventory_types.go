@@ -20,65 +20,67 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// DBaaSInventoryPolicy sets inventory policy
+// Sets the inventory policy.
 type DBaaSInventoryPolicy struct {
-	// Disable provisioning against inventory accounts
+	// Disables provisioning on inventory accounts.
 	DisableProvisions *bool `json:"disableProvisions,omitempty"`
 
-	// Namespaces where DBaaSConnections/DBaaSInstances are allowed to reference a policy's inventories.
-	// Each inventory can individually override this. Use "*" to allow all namespaces.
-	// If not set in either the policy or inventory object, connections will only be allowed in the inventory's namespace.
+	// Namespaces where DBaaSConnection and DBaaSInstance objects are only allowed to reference a policy's inventories.
+	// Each inventory can individually override this.
+	// Using an asterisk surrounded by single quotes ('*'), allows all namespaces.
+	// If not set in the policy or by an inventory object, connections are only allowed in the inventory's namespace.
 	ConnectionNamespaces *[]string `json:"connectionNamespaces,omitempty"`
 
-	// Use a label selector to determine namespaces where DBaaSConnections/DBaaSInstances are allowed to reference a policy's inventories.
-	// Each inventory can individually override this. A label selector is a label query over a set of resources. The result of matchLabels and
-	// matchExpressions are ANDed. An empty label selector matches all objects. A null
-	// label selector matches no objects.
+	// Use a label selector to determine the namespaces where DBaaSConnection and DBaaSInstance objects are only allowed to reference a policy's inventories.
+	// Each inventory can individually override this.
+	// A label selector is a label query over a set of resources.
+	// Results use a logical AND from matchExpressions and matchLabels queries.
+	// An empty label selector matches all objects.
+	// A null label selector matches no objects.
 	ConnectionNsSelector *metav1.LabelSelector `json:"connectionNsSelector,omitempty"`
 }
 
 // DBaaSInventorySpec defines the Inventory Spec to be used by provider operators
 type DBaaSInventorySpec struct {
-	// The Secret containing the provider-specific connection credentials to use with its API
-	// endpoint. The format of the Secret is specified in the provider’s operator in its
-	// DBaaSProvider CR (CredentialFields key). The Secret must exist within the same namespace
-	// as the Inventory.
+	// The secret containing the provider-specific connection credentials to use with the provider's API endpoint.
+	// The format specifies the secret in the provider’s operator for its DBaaSProvider custom resource (CR), such as the CredentialFields key.
+	// The secret must exist within the same namespace as the inventory.
 	CredentialsRef *LocalObjectReference `json:"credentialsRef"`
 }
 
-// DBaaSOperatorInventorySpec defines the desired state of DBaaSInventory
+// This object defines the desired state of a DBaaSInventory object.
 type DBaaSOperatorInventorySpec struct {
-	// A reference to a DBaaSProvider CR
+	// A reference to a DBaaSProvider custom resource (CR).
 	ProviderRef NamespacedName `json:"providerRef"`
 
-	// The properties that will be copied into the provider’s inventory Spec
+	// The properties that will be copied into the provider’s inventory.
 	DBaaSInventorySpec `json:",inline"`
 
-	// The policy for this inventory
+	// The policy for this inventory.
 	DBaaSInventoryPolicy `json:",inline"`
 }
 
-// DBaaSInventoryStatus defines the observed state of DBaaSInventory
+// Defines the inventory status that the provider's operator uses.
 type DBaaSInventoryStatus struct {
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
-	// A list of database services returned from querying the DB provider
+	// A list of database services returned from querying the database provider.
 	DatabaseServices []DatabaseService `json:"databaseServices,omitempty"`
 }
 
-// DatabaseService defines the information of a database service
+// Defines the information of a database service.
 type DatabaseService struct {
-	// A provider-specific identifier for the database service. It may contain one or
-	// more pieces of information used by the provider operator to identify the database service.
+	// A provider-specific identifier for the database service.
+	// It can contain one or more pieces of information used by the provider's operator to identify the database service.
 	ServiceID string `json:"serviceID"`
 
-	// The name of the database service
+	// The name of the database service.
 	ServiceName string `json:"serviceName,omitempty"`
 
-	// The type of the database service
+	// The type of the database service.
 	ServiceType DatabaseServiceType `json:"serviceType,omitempty"`
 
-	// Any other provider-specific information related to this service
+	// Any other provider-specific information related to this service.
 	ServiceInfo map[string]string `json:"serviceInfo,omitempty"`
 }
 
@@ -86,8 +88,8 @@ type DatabaseService struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:storageversion
 
-// DBaaSInventory is the Schema for the dbaasinventories API
-// Inventory objects must be created in a valid namespace, determined by the existence of a DBaaSPolicy object
+// The schema for the DBaaSInventory API.
+// Inventory objects must be created in a valid namespace, determined by the existence of a DBaaSPolicy object.
 //+operator-sdk:csv:customresourcedefinitions:displayName="Provider Account"
 type DBaaSInventory struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -99,7 +101,7 @@ type DBaaSInventory struct {
 
 //+kubebuilder:object:root=true
 
-// DBaaSInventoryList contains a list of DBaaSInventory
+// Contains a list of DBaaSInventories.
 type DBaaSInventoryList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
@@ -110,7 +112,7 @@ func init() {
 	SchemeBuilder.Register(&DBaaSInventory{}, &DBaaSInventoryList{})
 }
 
-// DBaaSProviderInventory is the schema for unmarshalling provider inventory object
+// The schema for a provider's inventory status.
 type DBaaSProviderInventory struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 

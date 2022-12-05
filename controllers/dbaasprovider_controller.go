@@ -87,7 +87,7 @@ func (r *DBaaSProviderReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 	logger.Info("Watching Provider Connection CR", "Kind", provider.Spec.ConnectionKind)
 
-	if err := r.watchDBaaSProviderObject(r.InstanceCtrl, &v1alpha1.DBaaSInstance{},  &v1alpha1.GroupVersion, provider.Spec.InstanceKind); err != nil {
+	if err := r.watchDBaaSProviderObject(r.InstanceCtrl, &v1alpha1.DBaaSInstance{}, &v1alpha1.GroupVersion, provider.Spec.InstanceKind); err != nil {
 		metricLabelErrCdValue = metrics.LabelErrorCdValueErrorWatchingInstanceCR
 		logger.Error(err, "Error watching Provider Instance CR", "Kind", provider.Spec.InstanceKind)
 		return ctrl.Result{}, err
