@@ -158,22 +158,11 @@ func assertProviderResourceCreated(object client.Object, providerResourceKind st
 		By("checking a provider resource created")
 		objectKey := client.ObjectKeyFromObject(object)
 		providerResource := &unstructured.Unstructured{}
-		switch object.(type) {
-		case *v1beta1.DBaaSInventory, *v1beta1.DBaaSConnection:
-			providerResource.SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   v1beta1.GroupVersion.Group,
-				Version: v1beta1.GroupVersion.Version,
-				Kind:    providerResourceKind,
-			})
-		case *v1alpha1.DBaaSInstance:
-			providerResource.SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   v1alpha1.GroupVersion.Group,
-				Version: v1alpha1.GroupVersion.Version,
-				Kind:    providerResourceKind,
-			})
-		default:
-			Fail("invalid test object")
-		}
+		providerResource.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   v1alpha1.GroupVersion.Group,
+			Version: v1alpha1.GroupVersion.Version,
+			Kind:    providerResourceKind,
+		})
 		Eventually(func() bool {
 			if err := dRec.Get(ctx, objectKey, providerResource); err != nil {
 				return false
@@ -257,22 +246,11 @@ func assertDBaaSResourceProviderStatusUpdated(object client.Object, resourceDBaa
 		}, timeout).Should(Equal(0))
 		By("getting the provider resource")
 		providerResource := &unstructured.Unstructured{}
-		switch object.(type) {
-		case *v1beta1.DBaaSInventory, *v1beta1.DBaaSConnection:
-			providerResource.SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   v1beta1.GroupVersion.Group,
-				Version: v1beta1.GroupVersion.Version,
-				Kind:    providerResourceKind,
-			})
-		case *v1alpha1.DBaaSInstance:
-			providerResource.SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   v1alpha1.GroupVersion.Group,
-				Version: v1alpha1.GroupVersion.Version,
-				Kind:    providerResourceKind,
-			})
-		default:
-			Fail("invalid test object")
-		}
+		providerResource.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   v1alpha1.GroupVersion.Group,
+			Version: v1alpha1.GroupVersion.Version,
+			Kind:    providerResourceKind,
+		})
 		Eventually(func() bool {
 			err := dRec.Get(ctx, objectKey, providerResource)
 			if err != nil {
@@ -455,22 +433,11 @@ func assertProviderResourceSpecUpdated(object client.Object, providerResourceKin
 
 		By("checking the provider resource status updated")
 		providerResource := &unstructured.Unstructured{}
-		switch object.(type) {
-		case *v1beta1.DBaaSInventory, *v1beta1.DBaaSConnection:
-			providerResource.SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   v1beta1.GroupVersion.Group,
-				Version: v1beta1.GroupVersion.Version,
-				Kind:    providerResourceKind,
-			})
-		case *v1alpha1.DBaaSInstance:
-			providerResource.SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   v1alpha1.GroupVersion.Group,
-				Version: v1alpha1.GroupVersion.Version,
-				Kind:    providerResourceKind,
-			})
-		default:
-			Fail("invalid test object")
-		}
+		providerResource.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   v1alpha1.GroupVersion.Group,
+			Version: v1alpha1.GroupVersion.Version,
+			Kind:    providerResourceKind,
+		})
 		Eventually(func() bool {
 			err := dRec.Get(ctx, objectKey, providerResource)
 			if err != nil {

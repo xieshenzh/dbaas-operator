@@ -22,7 +22,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -118,9 +117,6 @@ func (r *DBaaSInventoryReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	return r.reconcileProviderResource(ctx,
 		inventory.Spec.ProviderRef.Name,
 		&inventory,
-		func() *schema.GroupVersion {
-			return &v1beta1.GroupVersion
-		},
 		func(provider *v1alpha1.DBaaSProvider) string {
 			return provider.Spec.InventoryKind
 		},

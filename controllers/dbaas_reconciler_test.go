@@ -65,12 +65,12 @@ var _ = Describe("Create provider object", func() {
 				Namespace: "test-namespace",
 			},
 		}
-		result := dRec.createProviderObject(object, &v1beta1.GroupVersion, "test-kind")
+		result := dRec.createProviderObject(object, "test-kind")
 
 		expected := &unstructured.Unstructured{}
 		expected.SetGroupVersionKind(schema.GroupVersionKind{
 			Group:   "dbaas.redhat.com",
-			Version: "v1beta1",
+			Version: "v1alpha1",
 			Kind:    "test-kind",
 		})
 		expected.SetNamespace("test-namespace")
@@ -186,14 +186,14 @@ var _ = Describe("Watch DBaaS provider Object", func() {
 	It("should invoke controller watch with correctly input", func() {
 		source := &unstructured.Unstructured{}
 		source.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   v1beta1.GroupVersion.Group,
-			Version: v1beta1.GroupVersion.Version,
+			Group:   v1alpha1.GroupVersion.Group,
+			Version: v1alpha1.GroupVersion.Version,
 			Kind:    "test-kind",
 		})
 		owner := &v1beta1.DBaaSInventory{}
 		spyController := newSpyController(nil)
 
-		err := dRec.watchDBaaSProviderObject(spyController, owner, &v1beta1.GroupVersion, "test-kind")
+		err := dRec.watchDBaaSProviderObject(spyController, owner, "test-kind")
 		Expect(err).NotTo(HaveOccurred())
 		Eventually(func() bool {
 			return spyController.watched(&watchable{
@@ -558,9 +558,6 @@ var _ = Describe("Reconcile Provider Resource", func() {
 				_, err := dRec.reconcileProviderResource(ctx,
 					createdDBaaSInventory.Spec.ProviderRef.Name,
 					createdDBaaSInventory,
-					func() *schema.GroupVersion {
-						return &v1beta1.GroupVersion
-					},
 					func(provider *v1alpha1.DBaaSProvider) string {
 						return provider.Spec.InventoryKind
 					},

@@ -49,12 +49,11 @@ func (r *DBaaSReconciler) getDBaaSProvider(ctx context.Context, providerName str
 	return provider, nil
 }
 
-func (r *DBaaSReconciler) watchDBaaSProviderObject(ctrl controller.Controller, object runtime.Object,
-	providerObjectGroupVersion *schema.GroupVersion, providerObjectKind string) error {
+func (r *DBaaSReconciler) watchDBaaSProviderObject(ctrl controller.Controller, object runtime.Object, providerObjectKind string) error {
 	providerObject := unstructured.Unstructured{}
 	providerObject.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   providerObjectGroupVersion.Group,
-		Version: providerObjectGroupVersion.Version,
+		Group:   v1alpha1.GroupVersion.Group,
+		Version: v1alpha1.GroupVersion.Version,
 		Kind:    providerObjectKind,
 	})
 	err := ctrl.Watch(
@@ -72,12 +71,11 @@ func (r *DBaaSReconciler) watchDBaaSProviderObject(ctrl controller.Controller, o
 	return nil
 }
 
-func (r *DBaaSReconciler) createProviderObject(object client.Object, providerObjectGroupVersion *schema.GroupVersion,
-	providerObjectKind string) *unstructured.Unstructured {
+func (r *DBaaSReconciler) createProviderObject(object client.Object, providerObjectKind string) *unstructured.Unstructured {
 	var providerObject unstructured.Unstructured
 	providerObject.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   providerObjectGroupVersion.Group,
-		Version: providerObjectGroupVersion.Version,
+		Group:   v1alpha1.GroupVersion.Group,
+		Version: v1alpha1.GroupVersion.Version,
 		Kind:    providerObjectKind,
 	})
 	providerObject.SetNamespace(object.GetNamespace())
@@ -177,7 +175,6 @@ func canProvision(inventory v1beta1.DBaaSInventory, activePolicy *v1alpha1.DBaaS
 }
 
 func (r *DBaaSReconciler) reconcileProviderResource(ctx context.Context, providerName string, DBaaSObject client.Object,
-	providerObjectGroupVersionFn func() *schema.GroupVersion,
 	providerObjectKindFn func(*v1alpha1.DBaaSProvider) string, DBaaSObjectSpecFn func() interface{},
 	providerObjectFn func() interface{}, DBaaSObjectSyncStatusFn func(interface{}) metav1.Condition,
 	DBaaSObjectConditionsFn func() *[]metav1.Condition, DBaaSObjectReadyType string,
@@ -226,7 +223,7 @@ func (r *DBaaSReconciler) reconcileProviderResource(ctx context.Context, provide
 	}
 	logger.Info("Found DBaaS Provider", "DBaaS Provider", providerName)
 
-	providerObject := r.createProviderObject(DBaaSObject, providerObjectGroupVersionFn(), providerObjectKindFn(provider))
+	providerObject := r.createProviderObject(DBaaSObject, providerObjectKindFn(provider))
 	if res, err := controllerutil.CreateOrUpdate(ctx, r.Client, providerObject, r.providerObjectMutateFn(DBaaSObject, providerObject, DBaaSObjectSpecFn())); err != nil {
 		if errors.IsConflict(err) {
 			logger.V(1).Info("Provider object modified, retry syncing spec", "Provider Object", providerObject)

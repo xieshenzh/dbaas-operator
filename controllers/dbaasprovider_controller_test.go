@@ -58,15 +58,15 @@ var _ = Describe("DBaaSProvider controller", func() {
 
 		iSrc := &unstructured.Unstructured{}
 		iSrc.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   v1beta1.GroupVersion.Group,
-			Version: v1beta1.GroupVersion.Version,
+			Group:   v1alpha1.GroupVersion.Group,
+			Version: v1alpha1.GroupVersion.Version,
 			Kind:    createdInventoryKind,
 		})
 		iOwner := &v1beta1.DBaaSInventory{}
 		cSrc := &unstructured.Unstructured{}
 		cSrc.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   v1beta1.GroupVersion.Group,
-			Version: v1beta1.GroupVersion.Version,
+			Group:   v1alpha1.GroupVersion.Group,
+			Version: v1alpha1.GroupVersion.Version,
 			Kind:    createdConnectionKind,
 		})
 		cOwner := &v1beta1.DBaaSConnection{}
@@ -89,14 +89,14 @@ var _ = Describe("DBaaSProvider controller", func() {
 
 		uiSrc := &unstructured.Unstructured{}
 		uiSrc.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   v1beta1.GroupVersion.Group,
-			Version: v1beta1.GroupVersion.Version,
+			Group:   v1alpha1.GroupVersion.Group,
+			Version: v1alpha1.GroupVersion.Version,
 			Kind:    updatedInventoryKind,
 		})
 		ucSrc := &unstructured.Unstructured{}
 		ucSrc.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   v1beta1.GroupVersion.Group,
-			Version: v1beta1.GroupVersion.Version,
+			Group:   v1alpha1.GroupVersion.Group,
+			Version: v1alpha1.GroupVersion.Version,
 			Kind:    updatedConnectionKind,
 		})
 		uinSrc := &unstructured.Unstructured{}
@@ -165,15 +165,15 @@ var _ = Describe("DBaaSProvider controller", func() {
 
 		iSrc := &unstructured.Unstructured{}
 		iSrc.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   v1beta1.GroupVersion.Group,
-			Version: v1beta1.GroupVersion.Version,
+			Group:   v1alpha1.GroupVersion.Group,
+			Version: v1alpha1.GroupVersion.Version,
 			Kind:    deletedInventoryKind,
 		})
 		iOwner := &v1beta1.DBaaSInventory{}
 		cSrc := &unstructured.Unstructured{}
 		cSrc.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   v1beta1.GroupVersion.Group,
-			Version: v1beta1.GroupVersion.Version,
+			Group:   v1alpha1.GroupVersion.Group,
+			Version: v1alpha1.GroupVersion.Version,
 			Kind:    deletedConnectionKind,
 		})
 		cOwner := &v1beta1.DBaaSConnection{}

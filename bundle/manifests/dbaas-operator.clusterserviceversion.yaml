@@ -496,6 +496,7 @@ spec:
             metadata:
               labels:
                 control-plane: controller-manager
+                dbaas-apiversion: v1beta1
                 type: dbaas-operator
             spec:
               containers:
