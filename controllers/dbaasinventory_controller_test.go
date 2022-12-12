@@ -121,6 +121,7 @@ var _ = Describe("DBaaSInventory controller - nominal", func() {
 
 			Context("when updating provider inventory status", func() {
 				lastTransitionTime := getLastTransitionTimeForTest()
+				clusterType := v1beta1.DatabaseServiceType("cluster")
 				status := &v1beta1.DBaaSInventoryStatus{
 					DatabaseServices: []v1beta1.DatabaseService{
 						{
@@ -129,6 +130,14 @@ var _ = Describe("DBaaSInventory controller - nominal", func() {
 							ServiceInfo: map[string]string{
 								"testInstanceInfo": "testInstanceInfo",
 							},
+						},
+						{
+							ServiceID:   "testClusterID",
+							ServiceName: "testCluster",
+							ServiceInfo: map[string]string{
+								"testClusterInfo": "testClusterInfo",
+							},
+							ServiceType: &clusterType,
 						},
 					},
 					Conditions: []metav1.Condition{

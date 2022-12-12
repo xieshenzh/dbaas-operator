@@ -433,6 +433,74 @@ var _ = Describe("DBaaSConnection controller - nominal", func() {
 			BeforeEach(assertResourceCreationWithProviderStatus(createdDBaaSInventory, metav1.ConditionTrue, testInventoryKind, providerInventoryStatus))
 			AfterEach(assertResourceDeletion(createdDBaaSInventory))
 		})
+
+		Context("after creating DBaaSInventory with service type", func() {
+			inventoryRefName := "test-inventory-ref-service-type"
+			createdDBaaSInventory := &v1beta1.DBaaSInventory{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      inventoryRefName,
+					Namespace: testNamespace,
+				},
+				Spec: v1beta1.DBaaSOperatorInventorySpec{
+					ProviderRef: v1beta1.NamespacedName{
+						Name: testProviderName,
+					},
+					DBaaSInventorySpec: v1beta1.DBaaSInventorySpec{
+						CredentialsRef: &v1beta1.LocalObjectReference{
+							Name: testSecret.Name,
+						},
+					},
+				},
+			}
+			lastTransitionTime := getLastTransitionTimeForTest()
+			providerInventoryStatus := &v1beta1.DBaaSInventoryStatus{
+				DatabaseServices: []v1beta1.DatabaseService{
+					{
+						ServiceID:   "testInstanceID",
+						ServiceName: "testInstance",
+						ServiceInfo: map[string]string{
+							"testInstanceInfo": "testInstanceInfo",
+						},
+					},
+				},
+				Conditions: []metav1.Condition{
+					{
+						Type:               "SpecSynced",
+						Status:             metav1.ConditionTrue,
+						Reason:             "SyncOK",
+						LastTransitionTime: metav1.Time{Time: lastTransitionTime},
+					},
+				},
+			}
+
+			Context("after creating DBaaSConnection", func() {
+				connectionName := "test-connection-service-type"
+				serviceType := v1beta1.DatabaseServiceType("instance")
+				instanceID := "test-instanceID"
+				DBaaSConnectionSpec := &v1beta1.DBaaSConnectionSpec{
+					InventoryRef: v1beta1.NamespacedName{
+						Name:      inventoryRefName,
+						Namespace: testNamespace,
+					},
+					DatabaseServiceID:   instanceID,
+					DatabaseServiceType: &serviceType,
+				}
+				createdDBaaSConnection := &v1beta1.DBaaSConnection{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      connectionName,
+						Namespace: testNamespace,
+					},
+					Spec: *DBaaSConnectionSpec,
+				}
+				BeforeEach(assertResourceCreation(createdDBaaSConnection))
+				AfterEach(assertResourceDeletion(createdDBaaSConnection))
+
+				It("should create a provider connection", assertProviderResourceCreated(createdDBaaSConnection, testConnectionKind, DBaaSConnectionSpec))
+			})
+
+			BeforeEach(assertResourceCreationWithProviderStatus(createdDBaaSInventory, metav1.ConditionTrue, testInventoryKind, providerInventoryStatus))
+			AfterEach(assertResourceDeletion(createdDBaaSInventory))
+		})
 	})
 
 })
