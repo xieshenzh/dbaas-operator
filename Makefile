@@ -41,7 +41,7 @@ ENVTEST_K8S_VERSION ?= 1.24.2
 
 # ORG indicates the organization that docker images will be build for & pushed to
 # CHANGE THIS TO YOUR OWN QUAY USERNAME FOR DEV/TESTING/PUSHING
-ORG ?= ecosystem-appeng
+ORG ?= xiezhang7
 
 # CATALOG_BASE_IMG defines an existing catalog version to build on & add bundles to
 # CATALOG_BASE_IMG ?= quay.io/$(ORG)/dbaas-operator-catalog:v$(VERSION)

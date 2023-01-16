@@ -29,7 +29,7 @@ var _ = Context("DBaaSProvider Conversion", func() {
 		Specify("converts to and from the same object", func() {
 			src := DBaaSProvider{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      testName,
+					Name:      v1beta1.MongoDBAtlasRegistration,
 					Namespace: testNamespace,
 				},
 				Spec: DBaaSProviderSpec{
@@ -45,7 +45,17 @@ var _ = Context("DBaaSProvider Conversion", func() {
 					InstanceKind:                 "test",
 					InstanceParameterSpecs: []InstanceParameterSpec{
 						{
-							Name: "test",
+							Name:        "clusterName",
+							DisplayName: "Cluster Name",
+							Type:        "string",
+							Required:    true,
+						},
+						{
+							Name:         "providerName",
+							DisplayName:  "Cloud Provider",
+							Type:         "string",
+							Required:     true,
+							DefaultValue: "AWS",
 						},
 					},
 					InventoryKind: "test",

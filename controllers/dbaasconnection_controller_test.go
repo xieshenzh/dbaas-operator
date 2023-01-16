@@ -222,11 +222,11 @@ var _ = Describe("DBaaSConnection controller with errors", func() {
 				Name:      inventoryName,
 				Namespace: testNamespace,
 			},
-			ProvisioningParameters: map[v1alpha1.ProvisioningParameterType]string{
-				v1alpha1.ProvisioningName:          "test-instance-to-create",
-				v1alpha1.ProvisioningCloudProvider: "aws",
-				v1alpha1.ProvisioningRegions:       "utest-region",
-				v1alpha1.ProvisioningMachineType:   "test-machine-type",
+			ProvisioningParameters: map[v1beta1.ProvisioningParameterType]string{
+				v1beta1.ProvisioningName:          "test-instance-to-create",
+				v1beta1.ProvisioningCloudProvider: "aws",
+				v1beta1.ProvisioningRegions:       "utest-region",
+				v1beta1.ProvisioningMachineType:   "test-machine-type",
 			},
 		}
 		createdDBaaSInstance := &v1beta1.DBaaSInstance{
@@ -418,12 +418,30 @@ var _ = Describe("DBaaSConnection controller - nominal", func() {
 				})
 
 				Context("when updating DBaaSConnection spec", func() {
-					It("should not allow setting instance ID", func() {
-						By("updating instanceID twice")
-						createdDBaaSConnection.Spec.InstanceID = "updated-test-instanceID"
-						err := dRec.Update(ctx, createdDBaaSConnection)
-						Expect(err).Should(MatchError("admission webhook \"vdbaasconnection.kb.io\" denied the request: " +
-							"spec.instanceID: Invalid value: \"updated-test-instanceID\": instanceID is immutable"))
+					DBaaSConnectionSpec := &v1beta1.DBaaSConnectionSpec{
+						InventoryRef: v1beta1.NamespacedName{
+							Name:      inventoryRefName,
+							Namespace: testNamespace,
+						},
+						InstanceID: "updated-test-instanceID",
+					}
+					It("should not allow updating", func() {
+						objectKey := client.ObjectKeyFromObject(createdDBaaSConnection)
+						Eventually(func() bool {
+							err := dRec.Get(ctx, objectKey, createdDBaaSConnection)
+							Expect(err).NotTo(HaveOccurred())
+
+							createdDBaaSConnection.Spec = *DBaaSConnectionSpec
+							err = dRec.Update(ctx, createdDBaaSConnection)
+							if errors.IsConflict(err) {
+								return false
+							}
+
+							expectedErr := "admission webhook \"vdbaasconnection.kb.io\" denied the request: " +
+								"spec.instanceID: Invalid value: \"updated-test-instanceID\": instanceID is immutable"
+							Expect(err).Should(MatchError(expectedErr))
+							return true
+						}, timeout).Should(BeTrue())
 					})
 				})
 			})
@@ -496,8 +514,8 @@ var _ = Describe("DBaaSConnection controller - nominal with instance reference",
 							Name:      inventoryRefName,
 							Namespace: testNamespace,
 						},
-						ProvisioningParameters: map[v1alpha1.ProvisioningParameterType]string{
-							v1alpha1.ProvisioningName: instanceRefName,
+						ProvisioningParameters: map[v1beta1.ProvisioningParameterType]string{
+							v1beta1.ProvisioningName: instanceRefName,
 						},
 					},
 				}
@@ -714,12 +732,30 @@ var _ = Describe("DBaaSConnection controller - valid dev namespaces", func() {
 				})
 
 				Context("when updating DBaaSConnection spec", func() {
-					It("should not allow setting instance ID", func() {
-						By("updating instanceID twice")
-						createdDBaaSConnection.Spec.InstanceID = "updated-test-instanceID"
-						err := dRec.Update(ctx, createdDBaaSConnection)
-						Expect(err).Should(MatchError("admission webhook \"vdbaasconnection.kb.io\" denied the request: " +
-							"spec.instanceID: Invalid value: \"updated-test-instanceID\": instanceID is immutable"))
+					DBaaSConnectionSpec := &v1beta1.DBaaSConnectionSpec{
+						InventoryRef: v1beta1.NamespacedName{
+							Name:      inventoryRefName,
+							Namespace: testNamespace,
+						},
+						InstanceID: "updated-test-instanceID",
+					}
+					It("should not allow updating", func() {
+						objectKey := client.ObjectKeyFromObject(createdDBaaSConnection)
+						Eventually(func() bool {
+							err := dRec.Get(ctx, objectKey, createdDBaaSConnection)
+							Expect(err).NotTo(HaveOccurred())
+
+							createdDBaaSConnection.Spec = *DBaaSConnectionSpec
+							err = dRec.Update(ctx, createdDBaaSConnection)
+							if errors.IsConflict(err) {
+								return false
+							}
+
+							expectedErr := "admission webhook \"vdbaasconnection.kb.io\" denied the request: " +
+								"spec.instanceID: Invalid value: \"updated-test-instanceID\": instanceID is immutable"
+							Expect(err).Should(MatchError(expectedErr))
+							return true
+						}, timeout).Should(BeTrue())
 					})
 				})
 			})
@@ -819,12 +855,30 @@ var _ = Describe("DBaaSConnection controller - valid dev namespaces", func() {
 				})
 
 				Context("when updating DBaaSConnection spec", func() {
-					It("should not allow setting instance ID", func() {
-						By("updating instanceID twice")
-						createdDBaaSConnection.Spec.InstanceID = "updated-test-instanceID"
-						err := dRec.Update(ctx, createdDBaaSConnection)
-						Expect(err).Should(MatchError("admission webhook \"vdbaasconnection.kb.io\" denied the request: " +
-							"spec.instanceID: Invalid value: \"updated-test-instanceID\": instanceID is immutable"))
+					DBaaSConnectionSpec := &v1beta1.DBaaSConnectionSpec{
+						InventoryRef: v1beta1.NamespacedName{
+							Name:      inventoryRefName,
+							Namespace: testNamespace,
+						},
+						InstanceID: "updated-test-instanceID",
+					}
+					It("should not allow updating", func() {
+						objectKey := client.ObjectKeyFromObject(createdDBaaSConnection)
+						Eventually(func() bool {
+							err := dRec.Get(ctx, objectKey, createdDBaaSConnection)
+							Expect(err).NotTo(HaveOccurred())
+
+							createdDBaaSConnection.Spec = *DBaaSConnectionSpec
+							err = dRec.Update(ctx, createdDBaaSConnection)
+							if errors.IsConflict(err) {
+								return false
+							}
+
+							expectedErr := "admission webhook \"vdbaasconnection.kb.io\" denied the request: " +
+								"spec.instanceID: Invalid value: \"updated-test-instanceID\": instanceID is immutable"
+							Expect(err).Should(MatchError(expectedErr))
+							return true
+						}, timeout).Should(BeTrue())
 					})
 				})
 			})
@@ -943,12 +997,30 @@ var _ = Describe("DBaaSConnection controller - valid dev namespaces", func() {
 				})
 
 				Context("when updating DBaaSConnection spec", func() {
-					It("should not allow setting instance ID", func() {
-						By("updating instanceID twice")
-						createdDBaaSConnection.Spec.InstanceID = "updated-test-instanceID"
-						err := dRec.Update(ctx, createdDBaaSConnection)
-						Expect(err).Should(MatchError("admission webhook \"vdbaasconnection.kb.io\" denied the request: " +
-							"spec.instanceID: Invalid value: \"updated-test-instanceID\": instanceID is immutable"))
+					DBaaSConnectionSpec := &v1beta1.DBaaSConnectionSpec{
+						InventoryRef: v1beta1.NamespacedName{
+							Name:      inventoryRefName,
+							Namespace: testNamespace,
+						},
+						InstanceID: "updated-test-instanceID",
+					}
+					It("should not allow updating", func() {
+						objectKey := client.ObjectKeyFromObject(createdDBaaSConnection)
+						Eventually(func() bool {
+							err := dRec.Get(ctx, objectKey, createdDBaaSConnection)
+							Expect(err).NotTo(HaveOccurred())
+
+							createdDBaaSConnection.Spec = *DBaaSConnectionSpec
+							err = dRec.Update(ctx, createdDBaaSConnection)
+							if errors.IsConflict(err) {
+								return false
+							}
+
+							expectedErr := "admission webhook \"vdbaasconnection.kb.io\" denied the request: " +
+								"spec.instanceID: Invalid value: \"updated-test-instanceID\": instanceID is immutable"
+							Expect(err).Should(MatchError(expectedErr))
+							return true
+						}, timeout).Should(BeTrue())
 					})
 				})
 			})

@@ -11,7 +11,7 @@ spec:
         - name: manager
           env:
             - name: RELATED_IMAGE_DBAAS_DYNAMIC_PLUGIN
-              value: quay.io/ecosystem-appeng/dbaas-dynamic-plugin:0.4.0
+              value: quay.io/tchughesiv/dbaas-dynamic-plugin:0.4.0
             - name: CSV_VERSION_DBAAS_DYNAMIC_PLUGIN
               value: dbaas-dynamic-plugin:0.3.0
             - name: RELATED_IMAGE_OBSERVABILITY_CATALOG
@@ -31,6 +31,6 @@ spec:
             - name: CSV_VERSION_COCKROACHDB
               value: ccapi-k8s-operator.v0.0.4
             - name: RELATED_IMAGE_RDS_PROVIDER_CATALOG
-              value: quay.io/ecosystem-appeng/rds-dbaas-operator-catalog:v0.2.0
+              value: quay.io/xiezhang7/rds-dbaas-operator-catalog:v0.3.0
             - name: CSV_VERSION_RDS_PROVIDER
-              value: rds-dbaas-operator.v0.2.0
+              value: rds-dbaas-operator.v0.3.0

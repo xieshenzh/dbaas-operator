@@ -29,11 +29,22 @@ func (src *DBaaSInstance) ConvertTo(dstRaw conversion.Hub) error {
 	dst.ObjectMeta = src.ObjectMeta
 
 	// Spec
-	dst.Spec.CloudProvider = src.Spec.CloudProvider
-	dst.Spec.CloudRegion = src.Spec.CloudRegion
 	dst.Spec.InventoryRef = v1beta1.NamespacedName(src.Spec.InventoryRef)
-	dst.Spec.Name = src.Spec.Name
-	dst.Spec.OtherInstanceParams = src.Spec.OtherInstanceParams
+	dst.Spec.ProvisioningParameters = map[v1beta1.ProvisioningParameterType]string{}
+	dst.Spec.ProvisioningParameters[v1beta1.ProvisioningName] = src.Spec.Name
+	dst.Spec.ProvisioningParameters[v1beta1.ProvisioningCloudProvider] = src.Spec.CloudProvider
+	dst.Spec.ProvisioningParameters[v1beta1.ProvisioningRegions] = src.Spec.CloudRegion
+	for key, val := range src.Spec.OtherInstanceParams {
+		switch key {
+		case "project":
+			// For MongoDB Atlas
+			dst.Spec.ProvisioningParameters[v1beta1.ProvisioningTeamProject] = val
+		case "engine":
+			// For RDS
+			dst.Spec.ProvisioningParameters[v1beta1.ProvisioningDatabaseType] = val
+		}
+	}
+	dst.Spec.ProvisioningParameters[v1beta1.ProvisioningPlan] = v1beta1.ProvisioningPlanFreeTrial
 
 	// Status
 	dst.Status.Conditions = src.Status.Conditions
@@ -52,11 +63,21 @@ func (dst *DBaaSInstance) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.ObjectMeta = src.ObjectMeta
 
 	// Spec
-	dst.Spec.CloudProvider = src.Spec.CloudProvider
-	dst.Spec.CloudRegion = src.Spec.CloudRegion
+	dst.Spec.Name = src.Spec.ProvisioningParameters[v1beta1.ProvisioningName]
+	dst.Spec.CloudProvider = src.Spec.ProvisioningParameters[v1beta1.ProvisioningCloudProvider]
+	dst.Spec.CloudRegion = src.Spec.ProvisioningParameters[v1beta1.ProvisioningRegions]
 	dst.Spec.InventoryRef = NamespacedName(src.Spec.InventoryRef)
-	dst.Spec.Name = src.Spec.Name
-	dst.Spec.OtherInstanceParams = src.Spec.OtherInstanceParams
+	dst.Spec.OtherInstanceParams = map[string]string{}
+	for key, val := range src.Spec.ProvisioningParameters {
+		switch key {
+		case v1beta1.ProvisioningTeamProject:
+			// For MongoDB Atlas
+			dst.Spec.OtherInstanceParams["project"] = val
+		case v1beta1.ProvisioningDatabaseType:
+			// For RDS
+			dst.Spec.OtherInstanceParams["engine"] = val
+		}
+	}
 
 	// Status
 	dst.Status.Conditions = src.Status.Conditions

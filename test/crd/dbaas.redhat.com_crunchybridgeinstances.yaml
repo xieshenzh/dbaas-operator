@@ -17,71 +17,60 @@ spec:
     - name: v1alpha1
       schema:
         openAPIV3Schema:
-          description: CrunchyBridgeInstance is the Schema for the crunchybridgeinstances
-            API
+          description: The schema for the DBaaSInstance API.
           properties:
             apiVersion:
               description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+             of an object. Servers should convert recognized schemas to the latest
+             internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
               type: string
             kind:
               description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+             object represents. Servers may infer this from the endpoint the client
+             submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
               type: string
             metadata:
               type: object
             spec:
-              description: DBaaSInstanceSpec defines the desired state of DBaaSInstance
+              description: Defines the desired state of a DBaaSInstance object.
               properties:
-                cloudProvider:
-                  description: Identifies the desired cloud infrastructure provider
-                  type: string
-                cloudRegion:
-                  description: Identifies the requested deployment region within the
-                    cloud provider (e.g. us-east-1)
-                  type: string
                 inventoryRef:
-                  description: A reference to the relevant DBaaSInventory CR
+                  description: A reference to the relevant DBaaSInventory custom resource
+                    (CR).
                   properties:
                     name:
-                      description: The name for object of known type
+                      description: The name for object of a known type.
                       type: string
                     namespace:
-                      description: The namespace where object of known type is stored
+                      description: The namespace where an object of a known type is
+                        stored.
                       type: string
                   required:
                     - name
                   type: object
-                name:
-                  description: The name of this instance in the database service
-                  type: string
-                otherInstanceParams:
+                provisioningParameters:
                   additionalProperties:
                     type: string
-                  description: Any other provider-specific parameters related to the
-                    instance provisioning
+                  description: Parameters with values used for provisioning.
                   type: object
               required:
                 - inventoryRef
-                - name
               type: object
             status:
-              description: DBaaSInstanceStatus defines the observed state of DBaaSInstance
+              description: Defines the observed state of a DBaaSInstance.
               properties:
                 conditions:
                   items:
                     description: "Condition contains details for one aspect of the current
-                    state of this API Resource. --- This struct is intended for direct
-                    use as an array at the field path .status.conditions.  For example,
-                    type FooStatus struct{     // Represents the observations of a
-                    foo's current state.     // Known .status.conditions.type are:
-                    \"Available\", \"Progressing\", and \"Degraded\"     // +patchMergeKey=type
-                    \    // +patchStrategy=merge     // +listType=map     // +listMapKey=type
-                    \    Conditions []metav1.Condition `json:\"conditions,omitempty\"
-                    patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`
-                    \n     // other fields }"
+                   state of this API Resource. --- This struct is intended for direct
+                   use as an array at the field path .status.conditions.  For example,
+                   type FooStatus struct{     // Represents the observations of a
+                   foo's current state.     // Known .status.conditions.type are:
+                   \"Available\", \"Progressing\", and \"Degraded\"     // +patchMergeKey=type
+                   \    // +patchStrategy=merge     // +listType=map     // +listMapKey=type
+                   \    Conditions []metav1.Condition `json:\"conditions,omitempty\"
+                   patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`
+                   \n     // other fields }"
                     properties:
                       lastTransitionTime:
                         description: lastTransitionTime is the last time the condition
@@ -140,19 +129,36 @@ spec:
                     type: object
                   type: array
                 instanceID:
-                  description: The ID of the instance,
+                  description: A provider-specific identifier for this instance in the
+                    database service. It can contain one or more pieces of information
+                    used by the provider's operator to identify the instance on the
+                    database service.
                   type: string
                 instanceInfo:
                   additionalProperties:
                     type: string
                   description: Any other provider-specific information related to this
-                    instance
+                    instance.
                   type: object
                 phase:
-                  description: Represents the cluster provisioning phase Pending - provisioning
-                    not yet started Creating - provisioning in progress Updating - cluster
-                    updating in progress Deleting - cluster deletion in progress Deleted
-                    - cluster has been deleted Ready - cluster provisioning complete
+                  default: Unknown
+                  description: 'Represents the following cluster provisioning phases.
+                 Unknown: An unknown cluster provisioning status. Pending: In the
+                 queue, waiting for provisioning to start. Creating: Provisioning
+                 is in progress. Updating: Updating the cluster is in progress. Deleting:
+                 Cluster deletion is in progress. Deleted: Cluster has been deleted.
+                 Ready: Cluster provisioning is done. Error: Cluster provisioning
+                 error. Failed: Cluster provisioning failed.'
+                  enum:
+                    - Unknown
+                    - Pending
+                    - Creating
+                    - Updating
+                    - Deleting
+                    - Deleted
+                    - Ready
+                    - Error
+                    - Failed
                   type: string
               required:
                 - instanceID
@@ -162,7 +168,7 @@ spec:
       served: true
       storage: true
       subresources:
-        status: {}
+        status: { }
 status:
   acceptedNames:
     kind: ""

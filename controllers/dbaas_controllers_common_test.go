@@ -67,7 +67,6 @@ var mongoProvider = &v1beta1.DBaaSProvider{
 		AllowsFreeTrial:              false,
 		ExternalProvisionURL:         "",
 		ExternalProvisionDescription: "",
-		InstanceParameterSpecs:       []v1beta1.InstanceParameterSpec{},
 	},
 }
 
@@ -86,7 +85,6 @@ var crunchyProvider = &v1beta1.DBaaSProvider{
 		AllowsFreeTrial:              false,
 		ExternalProvisionURL:         "",
 		ExternalProvisionDescription: "",
-		InstanceParameterSpecs:       []v1beta1.InstanceParameterSpec{},
 	},
 }
 
