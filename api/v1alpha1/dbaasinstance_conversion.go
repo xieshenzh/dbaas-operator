@@ -39,7 +39,7 @@ func (src *DBaaSInstance) ConvertTo(dstRaw conversion.Hub) error {
 		case "project":
 			// For MongoDB Atlas
 			dst.Spec.ProvisioningParameters[v1beta1.ProvisioningTeamProject] = val
-		case "engine":
+		case "Engine":
 			// For RDS
 			dst.Spec.ProvisioningParameters[v1beta1.ProvisioningDatabaseType] = val
 		}
